@@ -2,32 +2,23 @@ import TensorSieve.Operator
 
 open KinematicRiemann
 
-/- Formal Warrant: Live evaluation of the first 20 emission spectrum values.
-   This guarantees logical consistency in the InfoView. -/
-#eval emissionSpectrum 1 20
+/- Formal Warrant: Live evaluation of the emission spectrum values.
+   Starting from a large node, sieving downward. -/
+#eval emissionSpectrumDown 27720 20
 
-/- Formal Warrant Theorem: The operator evaluates to either 0 or 1. -/
-theorem operatorH_binary (x : ℕ) : operatorH x = 0 ∨ operatorH x = 1 := by
-  dsimp [operatorH, TT_core]
-  split
-  · split
-    · right; rfl
-    · left; rfl
-  · left; rfl
-
-def emitData (max_level : ℕ) : IO Unit := do
-  IO.println "level,x,successor,jammed,eigenvalue_spacing"
-  let rec loop (x n : ℕ) (last_jam : ℕ) : IO Unit :=
-    match n with
-    | 0 => pure ()
-    | n' + 1 => do
-        let amp := operatorH x
-        let jammed := if amp == 0 then 1 else 0
-        let spacing := if jammed == 1 then x - last_jam else 0
-        IO.println s!"{x},{x},{x+1},{jammed},{spacing}"
-        let new_last_jam := if jammed == 1 then x else last_jam
-        loop (x + 1) n' new_last_jam
-  loop 1 max_level 0
+def emitDataDown (start : ℕ) (max_steps : ℕ) : IO Unit := do
+  IO.println "level,x,amplitude,local_degree,jammed,eigenvalue_spacing"
+  let data := emissionSpectrumDown start max_steps
+  let mut last_jam_level : ℕ := 0
+  for (lvl, x, amp, deg, jammed) in data do
+    let mut spacing : ℕ := 0
+    if jammed == 1 then
+      if last_jam_level > 0 then
+        spacing := lvl - last_jam_level
+      last_jam_level := lvl
+    IO.println s!"{lvl},{x},{amp},{deg},{jammed},{spacing}"
 
 def main : IO Unit := do
-  emitData 1000
+  -- Start from a highly composite number or a large node to see the sieve downward.
+  -- 27720000 = 2^6 * 3^2 * 5^4 * 7 * 11
+  emitDataDown 27720000 1000

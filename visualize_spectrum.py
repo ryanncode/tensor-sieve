@@ -14,31 +14,33 @@ def main():
     with open('data.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row['jammed'] == '1':
-                xs.append(int(row['x']))
-                # ignore first spacing if it's 0 or just the value of first element
-                if int(row['eigenvalue_spacing']) > 0:
-                    spacings.append(int(row['eigenvalue_spacing']))
+            xs.append(int(row['x']))
+            # We use local_degree as the analog for spectral weight/divergence
+            deg = int(row['local_degree'])
+            spacings.append(deg)
 
     if not xs:
-        print("No jammed states found in data.")
+        print("No data found.")
         sys.exit(1)
 
     plt.figure(figsize=(12, 6))
     
-    # Plot 1: Cumulative count of eigenvalues
+    # Plot 1: Trace Formula Convergence (Cumulative Zeros / Energy Levels)
     plt.subplot(1, 2, 1)
-    plt.plot(xs, range(1, len(xs) + 1), marker='.', linestyle='none', color='red')
-    plt.title('Trace Formula Convergence (Cumulative Zeros)')
-    plt.xlabel('x (Energy Level)')
-    plt.ylabel('N(x)')
+    # We plot the trajectory of the sieve
+    levels = range(1, len(xs) + 1)
+    plt.plot(levels, xs, marker='.', linestyle='-', color='red')
+    plt.title('Non-Archimedean Sieve Trajectory')
+    plt.xlabel('Contraction Step')
+    plt.ylabel('Semantic Address (x)')
+    plt.yscale('log')
     plt.grid(True)
     
-    # Plot 2: Eigenvalue Spacing Distribution
+    # Plot 2: Eigenvalue Spacing Distribution (Arithmetic Divergence)
     plt.subplot(1, 2, 2)
     plt.hist(spacings, bins=max(10, len(set(spacings))), alpha=0.7, color='blue', edgecolor='black')
-    plt.title('Dynamic Eigenvalue Spacing')
-    plt.xlabel('Spacing (\u0394x)')
+    plt.title('Arithmetic Divergence (Local Degree)')
+    plt.xlabel('Local Degree (D)')
     plt.ylabel('Frequency')
     plt.grid(True)
     
