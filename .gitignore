@@ -1,0 +1,14 @@
+# Lean 4 build and package artifacts
+.lake/
+lake-packages/
+build/
+
+# Lean intermediate and object files
+*.olean
+*.ilean
+*.c
+
+# IDE-specific (Optional but recommended)
+.DS_Store
+.vscode/.pylintrc
+EOF
