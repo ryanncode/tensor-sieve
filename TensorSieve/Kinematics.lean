@@ -1,15 +1,22 @@
 import Mathlib.NumberTheory.Padics.PadicValuation
 import Mathlib.CategoryTheory.Quiver.Basic
 
-namespace TensorSieve
+namespace KinematicSieve
 
-/-!
-# Phase 1: Environment Initialization
-Project: Non-Archimedean Framework for RH
-Internal Package: tensor_sieve
+/--
+  The totally disconnected integer record mapping deterministically
+  to a sequence of p-adic valuations. The absolute dimension is zero.
 -/
+inductive SemanticAddress : Type
+  | root : SemanticAddress
+  | step : (p : Nat) → (val : Nat) → SemanticAddress → SemanticAddress
 
-/-- The successor function S(x) = x ∪ {x} -/
-def successor (n : ℕ) : ℕ := n + 1
+/--
+  The Quiver instance defining the incidence relation.
+  An edge exists from `a` to `b` exclusively if `b` is generated
+  by exactly one prime multiplication operation from `a`.
+-/
+instance : Quiver SemanticAddress where
+  Hom a b := ∃ (p : Nat), b = SemanticAddress.step p 1 a
 
-end TensorSieve
+end KinematicSieve
