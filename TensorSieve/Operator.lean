@@ -74,31 +74,45 @@ def valuationDivergence (a b : ℕ) : ℕ :=
     acc + (if va > vb then va - vb else vb - va)
   ) 0
 
-/-- The discrete Order-4 coherence Hamiltonian H = L_c^2.
-    Exact FTNILO Cross-Branch Amplitude.
-    Implements the mutual divisibility constraint (interference). -/
-def crossBranchAmplitude (a b : ℕ) : ℤ :=
+/-- Computes the shared structural depth (greatest common semantic root)
+    between two nodes to evaluate their topological entanglement. -/
+def sharedSemanticRoot (a b : ℕ) : ℕ := Nat.gcd a b
+
+/-- The expanded discrete coherence Hamiltonian.
+    Enforces long-range GUE level repulsion by expanding the FTNILO tensor contraction
+    bounds. The amplitude evaluates the shared prime factorization history and applies
+    an alternating parity to induce cross-branch interference. -/
+def crossBranchAmplitude (a b : ℕ) (W : ℕ) : ℤ :=
   if a == b then
     -- Diagonal element: Total arithmetic divergence (D)
     (countFactors a : ℤ)
   else
-    -- Interference check: L1 distance of 2 indicates shared parentage.
     let dist := valuationDivergence a b
-    if dist == 2 then
-      -1  -- Constructive interference (Hamiltonian off-diagonal)
-    else
-      0   -- Logical Jamming (Delta functions do not overlap)
+    -- Expand the contraction bound to window W
+    if dist <= W then
+      let g := sharedSemanticRoot a b
+      let shared_weight := countFactors g
 
-/-- Computes the Trace of the Order-4 Hamiltonian across a horizontal slice. -/
-def traceHamiltonian (slice : List ℕ) : ℤ :=
-  slice.foldl (fun acc a => acc + crossBranchAmplitude a a) 0
+      -- Alternating logical parity based on L1 traversal distance
+      -- dist 2 = -1 (Destructive adjacent), dist 4 = 1 (Constructive distant)
+      let parity : ℤ := if dist % 4 == 0 then 1 else if dist % 2 == 0 then -1 else 0
+
+      -- Amplitude scales by the weight of their shared topological history
+      parity * (shared_weight : ℤ)
+    else
+      0 -- Absolute logical jamming beyond the correlation window
+
+/-- Computes the Trace of the Hamiltonian across a horizontal slice,
+    now requiring the correlation window W (e.g., W = 6). -/
+def traceHamiltonian (slice : List ℕ) (W : ℕ) : ℤ :=
+  slice.foldl (fun acc a => acc + crossBranchAmplitude a a W) 0
 
 /-- Computes the second spectral moment to structurally evaluate
     cross-branch interference and dynamic eigenvalue spacing. -/
-def traceHamiltonianSquared (slice : List ℕ) : ℤ :=
+def traceHamiltonianSquared (slice : List ℕ) (W : ℕ) : ℤ :=
   slice.foldl (fun acc a =>
     acc + slice.foldl (fun acc2 b =>
-      let amp := crossBranchAmplitude a b
+      let amp := crossBranchAmplitude a b W
       acc2 + amp * amp
     ) 0
   ) 0
@@ -115,7 +129,7 @@ def nextSlice (slice : List ℕ) : List ℕ :=
     Executes a structured horizontal non-Archimedean sieve moving strictly downwards.
     Outputs tuple: (level, x, amplitude, localDegree, jammed).
     Detects critical topological bottlenecks directly responsible for GUE energy spacings. -/
-def emissionSpectrumDown (start : ℕ) (steps : ℕ) : List (ℕ × ℕ × ℤ × ℕ × ℕ) :=
+def emissionSpectrumDown (start : ℕ) (steps : ℕ) (W : ℕ := 6) : List (ℕ × ℕ × ℤ × ℕ × ℕ) :=
   let rec loop (slice : List ℕ) (n : ℕ) (acc : List (ℕ × ℕ × ℤ × ℕ × ℕ)) :=
     match n with
     | 0 => acc.reverse
@@ -127,7 +141,7 @@ def emissionSpectrumDown (start : ℕ) (steps : ℕ) : List (ℕ × ℕ × ℤ �
           -- Iterate across the horizontal bound, testing each component node
           let new_acc := slice.foldl (fun (lst : List (ℕ × ℕ × ℤ × ℕ × ℕ)) (x : ℕ) =>
             -- Calculates the transition amplitude sum to map logical cross-branch jamming
-            let amp := slice.foldl (fun sum b => sum + crossBranchAmplitude x b) 0
+            let amp := slice.foldl (fun sum b => sum + crossBranchAmplitude x b W) 0
             let deg := countFactors x
             let jammed := if amp == 0 then 1 else 0
             (w, x, amp, deg, jammed) :: lst
