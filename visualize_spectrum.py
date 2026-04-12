@@ -32,9 +32,10 @@ def main():
         reader = csv.DictReader(f)
         for row in reader:
             xs.append(int(row['x']))
-            # We use local_degree as the structural analog for spectral weight/divergence
-            deg = int(row['local_degree'])
-            spacings.append(deg)
+            # Read horizontal eigenvalue_spacing instead of local_degree
+            spacing = int(row['eigenvalue_spacing'])
+            if int(row['jammed']) == 1 and spacing > 0:
+                spacings.append(spacing)
 
     if not xs:
         print("No data found in data.csv. Sieve failed to generate output.")
@@ -57,9 +58,10 @@ def main():
     # Plot 2: Eigenvalue Spacing Distribution (Arithmetic Divergence)
     # This visualizes the topological tension creating the discrete jamming events.
     plt.subplot(1, 2, 2)
-    plt.hist(spacings, bins=max(10, len(set(spacings))), alpha=0.7, color='blue', edgecolor='black')
-    plt.title('Arithmetic Divergence (Local Degree)')
-    plt.xlabel('Local Degree (D)')
+    bins_count = max(10, len(set(spacings))) if spacings else 10
+    plt.hist(spacings, bins=bins_count, alpha=0.7, color='blue', edgecolor='black')
+    plt.title('GUE Level Spacing Distribution')
+    plt.xlabel('Horizontal Topological Distance (Spacing)')
     plt.ylabel('Frequency')
     plt.grid(True)
     

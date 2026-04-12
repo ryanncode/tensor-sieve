@@ -1,6 +1,7 @@
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Data.Nat.Factors
 import Mathlib.Data.List.Nodup
+import Mathlib.Data.Nat.Factorization.Basic
 import TensorSieve.Kinematics
 
 /-!
@@ -51,22 +52,42 @@ def distinctPrimeFactorsFuel (fuel : ℕ) (n : ℕ) (p : ℕ) (acc : List ℕ) :
 def distinctPrimeFactors (n : ℕ) : List ℕ :=
   distinctPrimeFactorsFuel n n 2 []
 
+/-- Computes the exponent of p in the prime factorization of n. -/
+def pAdicValuation (n p : ℕ) : ℕ :=
+  if h : p > 1 ∧ n > 0 then
+    if n % p == 0 then
+      have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero (fun h0 => by rw [h0] at h; exact Nat.lt_irrefl 0 h.2)) h.1
+      1 + pAdicValuation (n / p) p
+    else 0
+  else 0
+termination_by n
+
+/-- Computes the L1-norm divergence between two numbers based on
+    their p-adic valuations. -/
+def valuationDivergence (a b : ℕ) : ℕ :=
+  let primesA := distinctPrimeFactors a
+  let primesB := distinctPrimeFactors b
+  let allPrimes := (primesA ++ primesB).eraseDups
+  allPrimes.foldl (fun acc p =>
+    let va := pAdicValuation a p
+    let vb := pAdicValuation b p
+    acc + (if va > vb then va - vb else vb - va)
+  ) 0
+
 /-- The discrete Order-4 coherence Hamiltonian H = L_c^2.
-    Evaluates the cross-branch transition amplitude between two nodes on the same horizontal level.
-    Amplitude jams (evaluates to 0) if nodes do not satisfy the exact topological neighbor criteria. -/
+    Exact FTNILO Cross-Branch Amplitude.
+    Implements the mutual divisibility constraint (interference). -/
 def crossBranchAmplitude (a b : ℕ) : ℤ :=
   if a == b then
-    let d := countFactors a
-    (d : ℤ) * (d : ℤ) + (d : ℤ)
+    -- Diagonal element: Total arithmetic divergence (D)
+    (countFactors a : ℤ)
   else
-    let g := Nat.gcd a b
-    let pa := a / g
-    let pb := b / g
-    -- Generates non-zero transition amplitudes only across states separated by a single prime exchange
-    if pa > 1 ∧ pa.minFac == pa ∧ pb > 1 ∧ pb.minFac == pb then
-      -1
+    -- Interference check: L1 distance of 2 indicates shared parentage.
+    let dist := valuationDivergence a b
+    if dist == 2 then
+      -1  -- Constructive interference (Hamiltonian off-diagonal)
     else
-      0
+      0   -- Logical Jamming (Delta functions do not overlap)
 
 /-- Computes the Trace of the Order-4 Hamiltonian across a horizontal slice. -/
 def traceHamiltonian (slice : List ℕ) : ℤ :=

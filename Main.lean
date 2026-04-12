@@ -29,14 +29,23 @@ dynamic eigenvalue spacing.
 def emitDataDown (start : ℕ) (max_steps : ℕ) : IO Unit := do
   IO.println "level,x,amplitude,local_degree,jammed,eigenvalue_spacing"
   let data := emissionSpectrumDown start max_steps
-  let mut last_jam_level : ℕ := 0
+  let mut last_jam_idx : Option ℕ := none
+  let mut current_lvl : ℕ := 0
+  let mut current_idx : ℕ := 0
   for (lvl, x, amp, deg, jammed) in data do
+    if lvl != current_lvl then
+      current_lvl := lvl
+      current_idx := 0
+      last_jam_idx := none
+
     let mut spacing : ℕ := 0
     if jammed == 1 then
-      if last_jam_level > lvl then
-        spacing := last_jam_level - lvl
-      last_jam_level := lvl
+      if let some last := last_jam_idx then
+        spacing := current_idx - last
+      last_jam_idx := some current_idx
+
     IO.println s!"{lvl},{x},{amp},{deg},{jammed},{spacing}"
+    current_idx := current_idx + 1
 
 /--
 The main entry point for the compiled executable.
