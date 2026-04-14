@@ -6,64 +6,96 @@ p-adic shift operator in Lean 4.
 
 This script ingests the 'data.csv' output from the tensor_sieve executable, 
 mapping the horizontal cross-branch trace signature to plot:
-1. Trace Formula Convergence (Cumulative Zeroes / Energy Levels)
-2. Arithmetic Divergence (Dynamic Eigenvalue Spacing / Local Degree)
+1. Transition Amplitudes (Trace Formula Convergence)
+2. Raw Eigenvalue Spacing Sequence
+3. Level Repulsion Histogram
+4. Spectral Form Factor (SFF) proving long-range spectral rigidity
 """
 
 import csv
 import matplotlib.pyplot as plt
 import sys
 import os
+import numpy as np
 
 def main():
     """
     Main entry point for the visualization script.
-    Checks for the data file, processes the output, and generates the spectral plot.
+    Checks for the data file, processes the output, and generates the spectral plots.
     """
     if not os.path.exists('data.csv'):
         print("data.csv not found. Did you run `lake exe tensor_sieve > data.csv`?")
         sys.exit(1)
         
-    xs = []
+    amplitudes = []
     spacings = []
     
     # Parse the emitted stream from the Lean executable
     with open('data.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            xs.append(int(row['x']))
-            # Read horizontal eigenvalue_spacing instead of local_degree
+            amplitudes.append(float(row['amplitude']))
             spacing = int(row['eigenvalue_spacing'])
             if int(row['jammed']) == 1 and spacing > 0:
                 spacings.append(spacing)
 
-    if not xs:
+    if not amplitudes:
         print("No data found in data.csv. Sieve failed to generate output.")
         sys.exit(1)
 
     # Configure the plot layout
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(14, 10))
     
-    # Plot 1: Trace Formula Convergence (Cumulative Zeros / Energy Levels)
-    # This plots the trajectory of the discrete sieve traversing the p-adic tree.
-    plt.subplot(1, 2, 1)
-    levels = range(1, len(xs) + 1)
-    plt.plot(levels, xs, marker='.', linestyle='-', color='red')
-    plt.title('Non-Archimedean Sieve Trajectory')
-    plt.xlabel('Contraction Step')
-    plt.ylabel('Semantic Address (x)')
-    plt.yscale('log')
+    # 1. Transition Amplitudes (Trace Formula Convergence)
+    plt.subplot(2, 2, 1)
+    plt.plot(range(len(amplitudes)), amplitudes, color='purple', alpha=0.7)
+    plt.title('Transition Amplitudes')
+    plt.xlabel('Horizontal Traversal Step')
+    plt.ylabel('Amplitude')
     plt.grid(True)
     
-    # Plot 2: Eigenvalue Spacing Distribution (Arithmetic Divergence)
-    # This visualizes the topological tension creating the discrete jamming events.
-    plt.subplot(1, 2, 2)
-    bins_count = max(10, len(set(spacings))) if spacings else 10
-    plt.hist(spacings, bins=bins_count, alpha=0.7, color='blue', edgecolor='black')
-    plt.title('GUE Level Spacing Distribution')
-    plt.xlabel('Horizontal Topological Distance (Spacing)')
+    # 2. Raw Eigenvalue Spacing Sequence
+    plt.subplot(2, 2, 2)
+    plt.plot(range(len(spacings)), spacings, marker='o', linestyle='-', color='orange')
+    plt.title('Raw Eigenvalue Spacing')
+    plt.xlabel('Jam Index')
+    plt.ylabel('Distance Between Bottlenecks')
+    plt.grid(True)
+
+    # 3. Level Repulsion Histogram
+    plt.subplot(2, 2, 3)
+    if spacings:
+        bins_count = max(10, len(set(spacings)))
+        plt.hist(spacings, bins=bins_count, alpha=0.7, color='blue', edgecolor='black')
+    plt.title('Level Repulsion Histogram')
+    plt.xlabel('Spacing')
     plt.ylabel('Frequency')
     plt.grid(True)
+
+    # 4. Spectral Form Factor (SFF)
+    plt.subplot(2, 2, 4)
+    if spacings:
+        # Reconstruct the "energy levels" from cumulative spacings
+        E = np.cumsum(spacings)
+        N = len(E)
+        
+        # Define a logarithmic time scale to capture the dip, ramp, and plateau
+        t = np.logspace(-2, 1.5, 1000)
+        K = np.zeros_like(t)
+        
+        for i, time in enumerate(t):
+            # Calculate the Fourier transform of the pair correlation: K(t) = 1/N * |sum e^{i*E_j*t}|^2
+            term = np.sum(np.exp(1j * E * time))
+            K[i] = (np.abs(term)**2) / N
+
+        plt.loglog(t, K, color='green')
+        plt.title('Spectral Form Factor (SFF)')
+        plt.xlabel('Time (t)')
+        plt.ylabel('K(t)')
+        plt.grid(True)
+    else:
+        plt.text(0.5, 0.5, 'Not enough data for SFF', horizontalalignment='center', verticalalignment='center')
+        plt.axis('off')
     
     # Save the output to disk
     plt.tight_layout()
