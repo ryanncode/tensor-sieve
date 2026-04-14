@@ -3,8 +3,8 @@
   <p><strong>A Non-Archimedean Framework for the Riemann Hypothesis in Lean 4</strong></p>
 
   [![Lean](https://img.shields.io/badge/Lean-4-blue.svg)](https://leanprover.github.io/)
-  [![Status](https://img.shields.io/badge/Status-Phase_1_Executable-green.svg)]()
-  [![License](https://img.shields.io/badge/License-MIT-purple.svg)]()
+  [![Status](https://img.shields.io/badge/Status-Phase_1_Executable-green.svg)](https://github.com/ryanncode/tensor-sieve/)
+  [![License](https://img.shields.io/badge/License-MIT-purple.svg)](https://github.com/ryanncode/tensor-sieve?tab=MIT-1-ov-file/)
 </div>
 
 ---
@@ -25,6 +25,7 @@ Our framework treats the prime numbers as a verified, generic landscape driven b
 ### Running the Executable Pipeline
 
 Execute the kinematic sieve, generate the GUE energy landscape, and plot the visualization in a single command:
+
 ```bash
 lake exe tensor_sieve > data.csv && python3 visualize_spectrum.py
 ```
@@ -32,17 +33,23 @@ lake exe tensor_sieve > data.csv && python3 visualize_spectrum.py
 Alternatively, run the steps manually:
 
 1. **Build the framework:**
+
    ```bash
    lake build TensorSieve
    ```
+
 2. **Execute the Sieve and Output Data:**
+
    ```bash
    lake exe tensor_sieve > data.csv
    ```
+
 3. **Generate the GUE Energy Landscape Visualization:**
+
    ```bash
    python3 visualize_spectrum.py
    ```
+
    This will output `spectrum_visualization.png`, demonstrating the dynamic trace formula convergence emerging from topological jams across the $p$-adic tree.
 
 ---
@@ -142,5 +149,5 @@ This formal specification demonstrates that ambitious philosophical ideas can be
 * *p-Adic Analysis and Mathematical Physics* (Vladimirov, Volovich, and Zelenov 1994).
 * *FTNILO: Explicit Multivariate Function Inversion... and Riemann Hypothesis Solution Equation with Tensor Networks* (Mata Ali 2025).
 * *Explicit Solution Equation for Every Combinatorial Problem via Tensor Networks: MeLoCoToN* (Mata Ali 2025).
-* *A proof of the Riemann hypothesis* (Li 2019).
+* *A proof of the Riemann hypothesis* (Li 2025).
 * *Statistical correspondence of primes and GUE* (Montgomery 1973, Odlyzko 1987).
