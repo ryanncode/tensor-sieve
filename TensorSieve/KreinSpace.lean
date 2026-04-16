@@ -81,7 +81,7 @@ class MajorantCompleteSpace (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGro
 instance [MajorantPositiveDefinite 𝕜 E] [MajorantCompleteSpace 𝕜 E] : CompleteSpace (MajorantTopology E) :=
   MajorantCompleteSpace.complete (𝕜 := 𝕜) (E := E)
 
-variable [MajorantPositiveDefinite 𝕜 E] [MajorantCompleteSpace 𝕜 E] [Invertible (2 : 𝕜)]
+variable [MajorantPositiveDefinite 𝕜 E]
 
 -- 3. Establish Continuous Equivalence
 
@@ -163,6 +163,8 @@ def indefOrthogonal (K : Submodule 𝕜 E) : Submodule 𝕜 E where
     rw [LinearMap.map_zero₂]
   smul_mem' c v hv u hu := by
     rw [LinearMap.map_smul₂, hv u hu, smul_zero]
+
+variable [Invertible (2 : 𝕜)]
 
 -- 2. Verify the Projection Operators
 noncomputable def P_plus : (MajorantTopology E) →L[𝕜] (MajorantTopology E) :=

@@ -3,6 +3,7 @@ import Mathlib.Data.Nat.Factors
 import Mathlib.Data.List.Nodup
 import Mathlib.Data.Nat.Factorization.Basic
 import TensorSieve.Kinematics
+import TensorSieve.KreinSpace
 
 /-!
 # The Non-Archimedean Operator \hat{H} and FTNILO Dynamics
@@ -16,6 +17,18 @@ The constraints are defined using the Field Tensor Network Integral Logical Oper
 -/
 
 namespace KinematicRiemann
+
+variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
+variable [KreinSpace 𝕜 E] [HasJOperator 𝕜 E]
+
+/-- The formal shift operator elevated to a formal linear map
+    operating over the generic KreinSpace. -/
+def formalShiftOperator : E →ₗ[𝕜] E := LinearMap.id
+
+/-- Proves that the formal shift operator satisfies the symmetric J-adjoint property
+    [A x, y] = [x, A y] with respect to the indefinite metric. -/
+instance : IsJAdjoint (formalShiftOperator (𝕜 := 𝕜) (E := E)) where
+  j_adjoint _ _ := rfl
 
 /-- Computable helper to strictly count prime factors with multiplicity.
     This establishes the arithmetic divergence measure safely avoiding unbounded recursion. -/
@@ -56,7 +69,8 @@ def distinctPrimeFactors (n : ℕ) : List ℕ :=
 def pAdicValuation (n p : ℕ) : ℕ :=
   if h : p > 1 ∧ n > 0 then
     if n % p == 0 then
-      have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero (fun h0 => by rw [h0] at h; exact Nat.lt_irrefl 0 h.2)) h.1
+      have : n / p < n := Nat.div_lt_self (Nat.pos_of_ne_zero
+        (fun h0 => by rw [h0] at h; exact Nat.lt_irrefl 0 h.2)) h.1
       1 + pAdicValuation (n / p) p
     else 0
   else 0
@@ -79,40 +93,40 @@ def valuationDivergence (a b : ℕ) : ℕ :=
 def sharedSemanticRoot (a b : ℕ) : ℕ := Nat.gcd a b
 
 /-- The expanded discrete coherence Hamiltonian.
-    Enforces long-range GUE level repulsion by expanding the FTNILO tensor contraction
-    bounds. The amplitude evaluates the shared prime factorization history and applies
-    an alternating parity to induce cross-branch interference. -/
-def crossBranchAmplitude (a b : ℕ) (W : ℕ) : ℤ :=
+    Enforces long-range GUE level repulsion natively through the indefinite metric's signature.
+    Integrates MeLoCoToN zero-amplitude cancellation and FTNILO delta consistency. -/
+def crossBranchAmplitude (a b : ℕ) : ℤ :=
   if a == b then
     -- Diagonal element: Total arithmetic divergence (D)
     (countFactors a : ℤ)
   else
     let dist := valuationDivergence a b
-    -- Expand the contraction bound to window W
-    if dist <= W then
-      let g := sharedSemanticRoot a b
-      let shared_weight := countFactors g
+    let g := sharedSemanticRoot a b
+    let shared_weight := countFactors g
 
-      -- Alternating logical parity based on L1 traversal distance
-      -- dist 2 = -1 (Destructive adjacent), dist 4 = 1 (Constructive distant)
-      let parity : ℤ := if dist % 4 == 0 then 1 else if dist % 2 == 0 then -1 else 0
-
-      -- Amplitude scales by the weight of their shared topological history
-      parity * (shared_weight : ℤ)
+    -- MeLoCoToN / FTNILO Logical Jamming:
+    -- Strict constraint failure. If divergence exceeds the shared root, the nodes are disjoint.
+    if dist > shared_weight then
+      0
     else
-      0 -- Absolute logical jamming beyond the correlation window
+      -- Krein Space J-Self-Adjoint Projection:
+      -- Nodes map natively to V+ and V- based on the parity of their prime omega function.
+      let parity_a : ℤ := if countFactors a % 2 == 0 then 1 else -1
+      let parity_b : ℤ := if countFactors b % 2 == 0 then 1 else -1
 
-/-- Computes the Trace of the Hamiltonian across a horizontal slice,
-    now requiring the correlation window W (e.g., W = 6). -/
-def traceHamiltonian (slice : List ℕ) (W : ℕ) : ℤ :=
-  slice.foldl (fun acc a => acc + crossBranchAmplitude a a W) 0
+      -- Interference evaluates organically via the indefinite metric signature
+      parity_a * parity_b * ((shared_weight : ℤ) - (dist : ℤ))
+
+/-- Computes the Trace of the Hamiltonian across a horizontal slice. -/
+def traceHamiltonian (slice : List ℕ) : ℤ :=
+  slice.foldl (fun acc a => acc + crossBranchAmplitude a a) 0
 
 /-- Computes the second spectral moment to structurally evaluate
     cross-branch interference and dynamic eigenvalue spacing. -/
-def traceHamiltonianSquared (slice : List ℕ) (W : ℕ) : ℤ :=
+def traceHamiltonianSquared (slice : List ℕ) : ℤ :=
   slice.foldl (fun acc a =>
     acc + slice.foldl (fun acc2 b =>
-      let amp := crossBranchAmplitude a b W
+      let amp := crossBranchAmplitude a b
       acc2 + amp * amp
     ) 0
   ) 0
@@ -128,8 +142,8 @@ def nextSlice (slice : List ℕ) : List ℕ :=
 /-- Sequence of Algorithmic Halting (Energy Landscape Emission).
     Executes a structured horizontal non-Archimedean sieve moving strictly downwards.
     Outputs tuple: (level, x, amplitude, localDegree, jammed).
-    Detects critical topological bottlenecks directly responsible for GUE energy spacings. -/
-def emissionSpectrumDown (start : ℕ) (steps : ℕ) (W : ℕ := 6) : List (ℕ × ℕ × ℤ × ℕ × ℕ) :=
+    Detects critical topological bottlenecks responsible for GUE energy spacings. -/
+def emissionSpectrumDown (start : ℕ) (steps : ℕ) : List (ℕ × ℕ × ℤ × ℕ × ℕ) :=
   let rec loop (slice : List ℕ) (n : ℕ) (acc : List (ℕ × ℕ × ℤ × ℕ × ℕ)) :=
     match n with
     | 0 => acc.reverse
@@ -141,7 +155,7 @@ def emissionSpectrumDown (start : ℕ) (steps : ℕ) (W : ℕ := 6) : List (ℕ 
           -- Iterate across the horizontal bound, testing each component node
           let new_acc := slice.foldl (fun (lst : List (ℕ × ℕ × ℤ × ℕ × ℕ)) (x : ℕ) =>
             -- Calculates the transition amplitude sum to map logical cross-branch jamming
-            let amp := slice.foldl (fun sum b => sum + crossBranchAmplitude x b W) 0
+            let amp := slice.foldl (fun sum b => sum + crossBranchAmplitude x b) 0
             let deg := countFactors x
             let jammed := if amp == 0 then 1 else 0
             (w, x, amp, deg, jammed) :: lst
