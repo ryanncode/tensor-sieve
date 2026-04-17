@@ -37,13 +37,11 @@ def emitDataDown (start : ℕ) (max_steps : ℕ) : IO Unit := do
       current_lvl := lvl
       current_idx := 0
       last_jam_idx := none
-
     let mut spacing : ℕ := 0
     if jammed == 1 then
       if let some last := last_jam_idx then
         spacing := current_idx - last
       last_jam_idx := some current_idx
-
     IO.println s!"{lvl},{x},{amp},{deg},{jammed},{spacing}"
     current_idx := current_idx + 1
 

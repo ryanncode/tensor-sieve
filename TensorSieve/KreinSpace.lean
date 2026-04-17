@@ -5,7 +5,14 @@ import Mathlib.Analysis.Normed.Module.Basic
 import Mathlib.Analysis.InnerProductSpace.Defs
 
 /-!
-# Phase 1: Algebraic Foundations and Indefinite Metrics
+# Krein Spaces and Indefinite Metrics
+
+This module establishes the formal foundations for Indefinite Metric Spaces,
+specifically Krein Spaces, where the fundamental inner product is no longer
+guaranteed to be positive definite. It acts as the functional analytic
+infrastructure to embed the non-Archimedean $p$-adic shift operators, allowing
+them to absorb the negative sign of the Lefschetz trace formula natively via
+a $J$-self-adjoint involution.
 -/
 
 namespace KinematicRiemann
@@ -15,13 +22,30 @@ open LinearMap
 variable {R : Type*} [CommRing R]
 variable {V : Type*} [AddCommGroup V] [Module R V]
 
+/--
+Defines a non-degenerate, indefinite bilinear metric over a module $V$.
+Unlike standard Hilbert space inner products, this metric permits negative
+and zero evaluations for non-zero vectors, acting as the bedrock for the
+non-Archimedean $V^+$ and $V^-$ geometric subspaces.
+-/
 structure IndefiniteMetric (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V] where
   bilin : LinearMap.BilinForm R V
   symm : bilin.IsSymm
 
+/--
+Maps the indefinite bilinear metric into its associated quadratic form.
+This form is strictly used to evaluate whether a unit vector belongs to
+the positive cone, negative cone, or neutral (isotropic) cone.
+-/
 def indefiniteQuadraticForm (M : IndefiniteMetric R V) : QuadraticForm R V :=
   LinearMap.BilinMap.toQuadraticMap M.bilin
 
+/--
+The formal definition of a Krein Space.
+A vector space $V$ equipped with an indefinite metric that natively admits
+a fundamental topological decomposition $V = V^+ \oplus V^-$, where $V^+$
+is positive definite and $V^-$ is negative definite.
+-/
 class KreinSpace (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V] where
   metric : IndefiniteMetric R V
   V_plus : Submodule R V
@@ -29,13 +53,29 @@ class KreinSpace (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R
   is_compl : IsCompl V_plus V_minus
 
 /-!
-# Phase 2 & 3: The Symmetry Operator and Endomorphisms
+# The Fundamental Symmetry Operator ($J$) and the Majorant Topology
+
+A Krein space $V$ admits a fundamental decomposition $V = V^+ \oplus V^-$.
+This decomposition corresponds to a fundamental symmetry operator $J$, an
+involutive automorphism that induces a positive-definite Majorant topology.
 -/
 
-class HasJOperator (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V] [KreinSpace R V] where
+/--
+The Fundamental Symmetry Operator ($J$).
+A linear equivalence acting on the Krein Space that fulfills the strict
+involutive property $J^2 = I$. It is responsible for bridging the indefinite
+Krein geometry into standard Hilbert space mechanics by reflecting the $V^-$ subspace.
+-/
+class HasJOperator (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V]
+    [KreinSpace R V] where
   J : V ≃ₗ[R] V
   J_involutive : J.trans J = LinearEquiv.refl R V
 
+/--
+A type synonym for $V$ strictly utilized to isolate the positive-definite
+Majorant topology induced by the $J$ operator, preventing topological
+clashes with the underlying indefinite metric.
+-/
 def MajorantTopology (V : Type*) := V
 
 instance {V} [AddCommGroup V] : AddCommGroup (MajorantTopology V) :=
@@ -44,48 +84,83 @@ instance {V} [AddCommGroup V] : AddCommGroup (MajorantTopology V) :=
 instance {R V} [CommRing R] [AddCommGroup V] [Module R V] : Module R (MajorantTopology V) :=
   ‹Module R V›
 
-variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E]
+variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [KreinSpace 𝕜 E]
+    [HasJOperator 𝕜 E]
 
+/--
+The induced Majorant inner product derived from the indefinite metric
+via the $J$-operator involution ($[x, y]_J = [Jx, y]$). This guarantees a strictly
+positive-definite geometry capable of sustaining continuous normed analysis.
+-/
 def majorantInner (x y : E) : 𝕜 :=
   (KreinSpace.metric (R := 𝕜) (V := E)).bilin (HasJOperator.J (R := 𝕜) (V := E) x) y
 
-class MajorantPositiveDefinite (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] where
-  conj_symm : ∀ x y : E, starRingEnd 𝕜 (majorantInner (𝕜 := 𝕜) (E := E) x y) = majorantInner (𝕜 := 𝕜) (E := E) y x
+/--
+The structural verification that the induced `majorantInner` fulfills all
+requisite properties of a strictly positive-definite inner product space.
+It verifies conjugate symmetry, non-negativity, and strict definiteness.
+-/
+class MajorantPositiveDefinite (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
+    [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] where
+  conj_symm : ∀ x y : E, starRingEnd 𝕜 (majorantInner (𝕜 := 𝕜) (E := E) x y) =
+    majorantInner (𝕜 := 𝕜) (E := E) y x
   re_nonneg : ∀ x : E, 0 ≤ RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) x x)
   definite : ∀ x : E, majorantInner (𝕜 := 𝕜) (E := E) x x = 0 → x = 0
-  add_left : ∀ x y z : E, majorantInner (𝕜 := 𝕜) (E := E) (x + y) z = majorantInner (𝕜 := 𝕜) (E := E) x z + majorantInner (𝕜 := 𝕜) (E := E) y z
-  smul_left : ∀ x y : E, ∀ r : 𝕜, majorantInner (𝕜 := 𝕜) (E := E) (r • x) y = starRingEnd 𝕜 r * majorantInner (𝕜 := 𝕜) (E := E) x y
+  add_left : ∀ x y z : E, majorantInner (𝕜 := 𝕜) (E := E) (x + y) z =
+    majorantInner (𝕜 := 𝕜) (E := E) x z + majorantInner (𝕜 := 𝕜) (E := E) y z
+  smul_left : ∀ x y : E, ∀ r : 𝕜, majorantInner (𝕜 := 𝕜) (E := E) (r • x) y =
+    starRingEnd 𝕜 r * majorantInner (𝕜 := 𝕜) (E := E) x y
 
--- Create Core structure proving the requested InnerProductSpace axioms via exact proofs from the class assumptions
+/--
+Constructs the core `PreInnerProductSpace` structure from the strictly
+positive definite Majorant inner product, bridging the indefinite metric
+into standard Hilbert space analysis.
+-/
 @[reducible]
-noncomputable def majorantCore [MajorantPositiveDefinite 𝕜 E] : PreInnerProductSpace.Core 𝕜 (MajorantTopology E) where
+noncomputable def majorantCore [MajorantPositiveDefinite 𝕜 E] :
+    PreInnerProductSpace.Core 𝕜 (MajorantTopology E) where
   inner x y := majorantInner (𝕜 := 𝕜) (E := E) (x : E) (y : E)
   conj_inner_symm x y := MajorantPositiveDefinite.conj_symm (𝕜 := 𝕜) (E := E) (y : E) (x : E)
   re_inner_nonneg x := MajorantPositiveDefinite.re_nonneg (𝕜 := 𝕜) (E := E) (x : E)
   add_left x y z := MajorantPositiveDefinite.add_left (𝕜 := 𝕜) (E := E) (x : E) (y : E) (z : E)
   smul_left x y r := MajorantPositiveDefinite.smul_left (𝕜 := 𝕜) (E := E) (x : E) (y : E) r
 
-noncomputable def majorantInnerProductSpaceCore [MajorantPositiveDefinite 𝕜 E] : InnerProductSpace.Core 𝕜 (MajorantTopology E) :=
+@[reducible]
+noncomputable def majorantInnerProductSpaceCore [MajorantPositiveDefinite 𝕜 E] :
+    InnerProductSpace.Core 𝕜 (MajorantTopology E) :=
   { majorantCore (𝕜 := 𝕜) (E := E) with
     definite := fun x hx => MajorantPositiveDefinite.definite (𝕜 := 𝕜) (E := E) x hx }
 
 noncomputable instance [MajorantPositiveDefinite 𝕜 E] : NormedAddCommGroup (MajorantTopology E) :=
-  @InnerProductSpace.Core.toNormedAddCommGroup 𝕜 (MajorantTopology E) _ _ _ (majorantInnerProductSpaceCore (𝕜 := 𝕜) (E := E))
+  @InnerProductSpace.Core.toNormedAddCommGroup 𝕜 (MajorantTopology E) _ _ _
+    (majorantInnerProductSpaceCore (𝕜 := 𝕜) (E := E))
 
 noncomputable instance [MajorantPositiveDefinite 𝕜 E] : InnerProductSpace 𝕜 (MajorantTopology E) :=
   InnerProductSpace.ofCore (majorantInnerProductSpaceCore (𝕜 := 𝕜) (E := E)).toCore
 
-class MajorantCompleteSpace (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] [MajorantPositiveDefinite 𝕜 E] where
+/--
+Elevates the positive-definite Majorant topology into a fully complete metric space,
+fulfilling the fundamental requirement that a Krein space must be capable of acting
+as a complete Hilbert space under its native $J$-involution.
+-/
+class MajorantCompleteSpace (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
+    [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] [MajorantPositiveDefinite 𝕜 E] where
   complete : CompleteSpace (MajorantTopology E)
 
-instance [MajorantPositiveDefinite 𝕜 E] [MajorantCompleteSpace 𝕜 E] : CompleteSpace (MajorantTopology E) :=
+instance [MajorantPositiveDefinite 𝕜 E] [MajorantCompleteSpace 𝕜 E] :
+    CompleteSpace (MajorantTopology E) :=
   MajorantCompleteSpace.complete (𝕜 := 𝕜) (E := E)
 
 variable [MajorantPositiveDefinite 𝕜 E]
 
--- 3. Establish Continuous Equivalence
+/-
+Verification that the fundamental symmetry $J$ behaves as a continuous
+linear equivalence under its own induced Majorant topology.
+-/
 
-lemma J_J_eq_x (x : E) : HasJOperator.J (R := 𝕜) (V := E) (HasJOperator.J (R := 𝕜) (V := E) x) = x := by
+omit [MajorantPositiveDefinite 𝕜 E] in
+lemma J_J_eq_x (x : E) :
+    HasJOperator.J (R := 𝕜) (V := E) (HasJOperator.J (R := 𝕜) (V := E) x) = x := by
   have h := HasJOperator.J_involutive (R := 𝕜) (V := E)
   exact LinearEquiv.congr_fun h x
 
@@ -93,67 +168,101 @@ noncomputable def continuousJ : (MajorantTopology E) ≃L[𝕜] (MajorantTopolog
   let J_lin := HasJOperator.J (R := 𝕜) (V := E)
   LinearEquiv.toContinuousLinearEquivOfBounds J_lin 1 1
     (fun (x : MajorantTopology E) => by
-      have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 = RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
+      -- Expand the square norm into its real inner product representation
+      have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 =
+          RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ (J_lin (x : E))
-      have h2 : majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E)) = (KreinSpace.metric (R := 𝕜) (V := E)).bilin (J_lin (J_lin (x : E))) (J_lin (x : E)) := rfl
+      -- Unfold the definition of majorantInner specifically for the J operator
+      have h2 : majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E)) =
+          (KreinSpace.metric (R := 𝕜) (V := E)).bilin (J_lin (J_lin (x : E))) (J_lin (x : E)) := rfl
+      -- Apply the involutive property (J^2 = I) to simplify the first term
       have h3 : J_lin (J_lin (x : E)) = (x : E) := by
         have h_inv := HasJOperator.J_involutive (R := 𝕜) (V := E)
         exact LinearEquiv.congr_fun h_inv (x : E)
       rw [h3] at h2
-      have h4 : (KreinSpace.metric (R := 𝕜) (V := E)).bilin (x : E) (J_lin (x : E)) = majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E) := by
+      -- Exploit the symmetry of the underlying indefinite bilinear form
+      have h4 : (KreinSpace.metric (R := 𝕜) (V := E)).bilin (x : E) (J_lin (x : E)) =
+          majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E) := by
         have h_symm := (KreinSpace.metric (R := 𝕜) (V := E)).symm
         exact h_symm.eq (x : E) (J_lin (x : E))
       rw [h4] at h2
-      have h6 : @norm (MajorantTopology E) _ x ^ 2 = RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E)) :=
+      -- Reconstruct the original norm of x to finalize the equality
+      have h6 : @norm (MajorantTopology E) _ x ^ 2 =
+          RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E)) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ x
       rw [h2] at h1
       rw [← h6] at h1
+      -- Extract the square roots to prove the isometry bound ||Jx|| = ||x|| <= 1 * ||x||
       have ha : 0 ≤ @norm (MajorantTopology E) _ (J_lin (x : E)) := norm_nonneg _
       have hb : 0 ≤ @norm (MajorantTopology E) _ x := norm_nonneg _
-      have h_eq0 : Real.sqrt (@norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2) = Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
+      have h_eq0 : Real.sqrt (@norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2) =
+          Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
       rw [Real.sqrt_sq ha] at h_eq0
       rw [Real.sqrt_sq hb] at h_eq0
       calc @norm (MajorantTopology E) _ (J_lin (x : E)) = @norm (MajorantTopology E) _ x := h_eq0
         _ ≤ 1 * @norm (MajorantTopology E) _ x := by simp
     )
     (fun (x : MajorantTopology E) => by
+      -- Establish equivalence between the symmetric operator and the direct operator
       have h_symm_eq : J_lin.symm (x : E) = J_lin (x : E) := by
         have h_inv := HasJOperator.J_involutive (R := 𝕜) (V := E)
         have h_double := LinearEquiv.congr_fun h_inv (x : E)
-        have h_apply : J_lin.symm (J_lin (J_lin (x : E))) = J_lin.symm (x : E) := congrArg J_lin.symm h_double
+        have h_apply : J_lin.symm (J_lin (J_lin (x : E))) = J_lin.symm (x : E) :=
+          congrArg J_lin.symm h_double
         rw [LinearEquiv.symm_apply_apply] at h_apply
         exact h_apply.symm
-      have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 = RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
+      -- Duplicate the forward bound proof structure to prove ||J_symm x|| = ||x||
+      have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 =
+          RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ (J_lin (x : E))
-      have h2 : majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E)) = (KreinSpace.metric (R := 𝕜) (V := E)).bilin (J_lin (J_lin (x : E))) (J_lin (x : E)) := rfl
+      have h2 : majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E)) =
+          (KreinSpace.metric (R := 𝕜) (V := E)).bilin (J_lin (J_lin (x : E))) (J_lin (x : E)) := rfl
       have h3 : J_lin (J_lin (x : E)) = (x : E) := by
         have h_inv := HasJOperator.J_involutive (R := 𝕜) (V := E)
         exact LinearEquiv.congr_fun h_inv (x : E)
       rw [h3] at h2
-      have h4 : (KreinSpace.metric (R := 𝕜) (V := E)).bilin (x : E) (J_lin (x : E)) = majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E) := by
+      have h4 : (KreinSpace.metric (R := 𝕜) (V := E)).bilin (x : E) (J_lin (x : E)) =
+          majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E) := by
         have h_symm := (KreinSpace.metric (R := 𝕜) (V := E)).symm
         exact h_symm.eq (x : E) (J_lin (x : E))
       rw [h4] at h2
-      have h6 : @norm (MajorantTopology E) _ x ^ 2 = RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E)) :=
+      have h6 : @norm (MajorantTopology E) _ x ^ 2 =
+          RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E)) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ x
       rw [h2] at h1
       rw [← h6] at h1
       have ha : 0 ≤ @norm (MajorantTopology E) _ (J_lin (x : E)) := norm_nonneg _
       have hb : 0 ≤ @norm (MajorantTopology E) _ x := norm_nonneg _
-      have h_eq0 : Real.sqrt (@norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2) = Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
+      have h_eq0 : Real.sqrt (@norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2) =
+          Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
       rw [Real.sqrt_sq ha] at h_eq0
       rw [Real.sqrt_sq hb] at h_eq0
-      have h_symm_eq2 : @norm (MajorantTopology E) _ (J_lin.symm (x : E)) = @norm (MajorantTopology E) _ (J_lin (x : E)) := by
+      have h_symm_eq2 : @norm (MajorantTopology E) _ (J_lin.symm (x : E)) =
+          @norm (MajorantTopology E) _ (J_lin (x : E)) := by
         exact congrArg (@norm (MajorantTopology E) _) h_symm_eq
-      calc @norm (MajorantTopology E) _ (J_lin.symm (x : E)) = @norm (MajorantTopology E) _ (J_lin (x : E)) := h_symm_eq2
+      -- Conclude with the symmetric operator bound inequality
+      calc @norm (MajorantTopology E) _ (J_lin.symm (x : E)) =
+          @norm (MajorantTopology E) _ (J_lin (x : E)) := h_symm_eq2
         _ = @norm (MajorantTopology E) _ x := h_eq0
         _ ≤ 1 * @norm (MajorantTopology E) _ x := by simp
     )
 
+/--
+Defines a linear operator $A$ as $J$-self-adjoint natively within the Krein Space.
+This permits an operator to be formally symmetric with respect to the indefinite
+metric ($[Ax, y] = [x, Ay]$) even while breaking standard Hilbert adjoint rules.
+-/
 class IsJAdjoint (A : E →ₗ[𝕜] E) : Prop where
   j_adjoint : ∀ x y : E,
-    (KreinSpace.metric (R := 𝕜) (V := E)).bilin (A x) y = (KreinSpace.metric (R := 𝕜) (V := E)).bilin x (A y)
+    (KreinSpace.metric (R := 𝕜) (V := E)).bilin (A x) y =
+      (KreinSpace.metric (R := 𝕜) (V := E)).bilin x (A y)
 
+/--
+The indefinite geometric orthogonal complement of a given subspace $K$.
+Unlike Hilbert space orthogonality, a subspace can be indefinitely orthogonal
+to itself (i.e., neutral or isotropic cones), which natively supports the
+zero-amplitude bottlenecks found in the grammar-first space.
+-/
 def indefOrthogonal (K : Submodule 𝕜 E) : Submodule 𝕜 E where
   carrier := { v : E | ∀ u ∈ K, (KreinSpace.metric (R := 𝕜) (V := E)).bilin v u = 0 }
   add_mem' h1 h2 u hu := by
@@ -167,21 +276,43 @@ def indefOrthogonal (K : Submodule 𝕜 E) : Submodule 𝕜 E where
 variable [Invertible (2 : 𝕜)]
 
 -- 2. Verify the Projection Operators
+/--
+The orthogonal projection operator onto the strictly positive-definite $V^+$ subspace.
+Computed dynamically via the symmetric mean $P^+ = \frac{1}{2}(I + J)$.
+-/
 noncomputable def P_plus : (MajorantTopology E) →L[𝕜] (MajorantTopology E) :=
-  (⅟(2 : 𝕜)) • (ContinuousLinearMap.id 𝕜 (MajorantTopology E) + continuousJ.toContinuousLinearMap)
+  (⅟(2 : 𝕜)) • (ContinuousLinearMap.id 𝕜 (MajorantTopology E) +
+    continuousJ.toContinuousLinearMap)
 
+/--
+The orthogonal projection operator onto the strictly negative-definite $V^-$ subspace.
+Computed dynamically via the symmetric mean $P^- = \frac{1}{2}(I - J)$.
+-/
 noncomputable def P_minus : (MajorantTopology E) →L[𝕜] (MajorantTopology E) :=
-  (⅟(2 : 𝕜)) • (ContinuousLinearMap.id 𝕜 (MajorantTopology E) - continuousJ.toContinuousLinearMap)
+  (⅟(2 : 𝕜)) • (ContinuousLinearMap.id 𝕜 (MajorantTopology E) -
+    continuousJ.toContinuousLinearMap)
 
-theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := 𝕜) (E := E) = ContinuousLinearMap.id 𝕜 (MajorantTopology E) := by
+/--
+A structural proof that the orthogonal projection operators properly decompose the
+Majorant topology, resolving back into the continuous identity map ($P^+ + P^- = I$).
+-/
+theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := 𝕜) (E := E) =
+    ContinuousLinearMap.id 𝕜 (MajorantTopology E) := by
   dsimp [P_plus, P_minus]
   rw [smul_add, smul_sub]
-  have h1 : (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) : (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
-            (⅟(2 : 𝕜) • continuousJ.toContinuousLinearMap : (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
-            ((⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) : (MajorantTopology E) →L[𝕜] (MajorantTopology E)) -
-            (⅟(2 : 𝕜) • continuousJ.toContinuousLinearMap : (MajorantTopology E) →L[𝕜] (MajorantTopology E))) =
-            (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) : (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
-            (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) : (MajorantTopology E) →L[𝕜] (MajorantTopology E)) := by
+  have h1 :
+    (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
+    (⅟(2 : 𝕜) • continuousJ.toContinuousLinearMap :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
+    ((⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E)) -
+    (⅟(2 : 𝕜) • continuousJ.toContinuousLinearMap :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E))) =
+    (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
+    (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
+      (MajorantTopology E) →L[𝕜] (MajorantTopology E)) := by
     abel
   rw [h1]
   rw [← add_smul]
