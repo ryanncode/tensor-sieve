@@ -48,28 +48,57 @@ def main():
     
     # 1. Transition Amplitudes (Trace Formula Convergence)
     plt.subplot(2, 2, 1)
-    plt.plot(range(len(amplitudes)), amplitudes, color='purple', alpha=0.7)
-    plt.title('Transition Amplitudes')
+    x_vals = np.arange(len(amplitudes))
+    amps_arr = np.array(amplitudes)
+    
+    pos_mask = amps_arr >= 0
+    neg_mask = amps_arr < 0
+    
+    # Plot positive stems (V+)
+    if np.any(pos_mask):
+        plt.stem(x_vals[pos_mask], amps_arr[pos_mask], linefmt='green', markerfmt='go', basefmt='k-', label='$V^+$ subspace')
+    
+    # Plot negative stems (V-)
+    if np.any(neg_mask):
+        plt.stem(x_vals[neg_mask], amps_arr[neg_mask], linefmt='orange', markerfmt='C1o', basefmt='k-', label='$V^-$ subspace')
+        
+    plt.fill_between(x_vals, amps_arr, 0, where=(amps_arr > 0), color='green', alpha=0.1)
+    plt.fill_between(x_vals, amps_arr, 0, where=(amps_arr < 0), color='orange', alpha=0.1)
+    
+    plt.title('Transition Amplitudes (Krein Space Decomposition)')
     plt.xlabel('Horizontal Traversal Step')
     plt.ylabel('Amplitude')
+    plt.legend()
     plt.grid(True)
     
-    # 2. Raw Eigenvalue Spacing Sequence
+    # 2. Cumulative Spectral Density (Unfolded Spectrum)
     plt.subplot(2, 2, 2)
-    plt.plot(range(len(spacings)), spacings, marker='o', linestyle='-', color='orange')
-    plt.title('Raw Eigenvalue Spacing')
-    plt.xlabel('Jam Index')
-    plt.ylabel('Distance Between Bottlenecks')
+    if spacings:
+        E = np.cumsum(spacings)
+        plt.step(E, np.arange(1, len(E) + 1), where='post', color='teal', linewidth=2)
+    plt.title('Cumulative Spectral Density (Unfolded Spectrum)')
+    plt.xlabel('Energy Level (Cumulative Spacing)')
+    plt.ylabel('Cumulative Number of States')
     plt.grid(True)
 
     # 3. Level Repulsion Histogram
     plt.subplot(2, 2, 3)
     if spacings:
+        # Normalize spacings so mean is 1
+        s_norm = np.array(spacings) / np.mean(spacings)
         bins_count = max(10, len(set(spacings)))
-        plt.hist(spacings, bins=bins_count, alpha=0.7, color='blue', edgecolor='black')
+        # Plot density histogram
+        plt.hist(s_norm, bins=bins_count, density=True, alpha=0.7, color='blue', edgecolor='black', label='Algorithmic Output')
+        
+        # Overlay Wigner surmise
+        s_vals = np.linspace(0, max(s_norm), 200)
+        p_s = (32 / np.pi**2) * s_vals**2 * np.exp(- (4 / np.pi) * s_vals**2)
+        plt.plot(s_vals, p_s, 'r-', linewidth=2, label='Wigner Surmise (GUE)')
+        plt.legend()
+        
     plt.title('Level Repulsion Histogram')
-    plt.xlabel('Spacing')
-    plt.ylabel('Frequency')
+    plt.xlabel('Normalized Spacing ($s$)')
+    plt.ylabel('Probability Density $P(s)$')
     plt.grid(True)
 
     # 4. Spectral Form Factor (SFF)
@@ -88,10 +117,29 @@ def main():
             term = np.sum(np.exp(1j * E * time))
             K[i] = (np.abs(term)**2) / N
 
-        plt.loglog(t, K, color='green')
+        plt.loglog(t, K, color='black')
+        
+        # Identify and annotate key SFF regions
+        # Correlation Hole (Dip): minimum K(t) in the early-to-mid time regime
+        min_idx = np.argmin(K[:len(t)//2])
+        t_dip = t[min_idx]
+        
+        # Topological Plateau: asymptotic behavior at late time
+        t_plateau = t[int(len(t)*0.8)]
+        
+        # Heisenberg Time (Ramp): region between dip and plateau
+        t_heisenberg = t[int((min_idx + int(len(t)*0.8)) / 2)]
+
+        plt.axvline(x=t_dip, color='red', linestyle='--', alpha=0.5, label='Correlation Hole (Dip)')
+        
+        plt.axvline(x=t_heisenberg, color='blue', linestyle='--', alpha=0.5, label='Heisenberg Time (Ramp)')
+        
+        plt.axvline(x=t_plateau, color='purple', linestyle='--', alpha=0.5, label='Topological Plateau')
+        
         plt.title('Spectral Form Factor (SFF)')
         plt.xlabel('Time (t)')
         plt.ylabel('K(t)')
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=3)
         plt.grid(True)
     else:
         plt.text(0.5, 0.5, 'Not enough data for SFF', horizontalalignment='center', verticalalignment='center')
