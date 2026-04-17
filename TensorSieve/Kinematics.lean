@@ -1,3 +1,4 @@
+import Mathlib.Data.PNat.Basic
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Data.Nat.Factorization.Basic
 import Mathlib.Data.Nat.Factors
@@ -24,9 +25,7 @@ Instead of magnitudes passing toward infinity, it represents the exact historica
 record of prime tile generation via the successor function $S(x) = x \cup \{x\}$.
 The requirement `0 < val` ensures zero (the empty set base token) acts properly.
 -/
-structure SemanticAddress where
-  val : ℕ
-  pos : 0 < val
+abbrev SemanticAddress := PNat
 
 /--
 Defines the divisibility metric constraint.
@@ -89,9 +88,9 @@ Formal verification that the sieve's descent cannot form infinite chains.
 Reduces the non-Archimedean descent to the natural well-foundedness of `ℕ`.
 -/
 lemma wellFounded_divisibility : WellFounded DivisibilityLT :=
-  Subrelation.wf (r := InvImage (· < ·) SemanticAddress.val)
-    (fun {a b} (h : DivisibilityLT a b) => Nat.lt_of_le_of_ne (Nat.le_of_dvd b.pos h.1) h.2)
-    (InvImage.wf SemanticAddress.val Nat.lt_wfRel.wf)
+  Subrelation.wf (r := InvImage (· < ·) Subtype.val)
+    (fun {a b} (h : DivisibilityLT a b) => Nat.lt_of_le_of_ne (Nat.le_of_dvd b.property h.1) h.2)
+    (InvImage.wf Subtype.val Nat.lt_wfRel.wf)
 
 instance : WellFoundedRelation SemanticAddress where
   rel := DivisibilityLT
@@ -117,7 +116,7 @@ Extracts the maximal topological neighbor by reversing a single prime generation
 proving positivity structurally through Lean's division theorems.
 -/
 noncomputable def maximalProperDivisor (a : SemanticAddress) : SemanticAddress :=
-  ⟨a.val / a.val.minFac, Nat.div_pos (Nat.minFac_le a.pos) (Nat.minFac_pos a.val)⟩
+  ⟨a.val / a.val.minFac, Nat.div_pos (Nat.minFac_le a.property) (Nat.minFac_pos a.val)⟩
 
 /--
 The computable kinematic sieve acting natively over the $p$-adic graph.
@@ -145,7 +144,7 @@ noncomputable def kinematicSieve (a : SemanticAddress) : ℕ :=
             rw [this] at h_one
             contradiction
           cases Nat.div_eq_self.mp contra with
-          | inl h_zero => exact ne_of_gt a.pos h_zero
+          | inl h_zero => exact ne_of_gt a.property h_zero
           | inr h_min_one => exact h_neq (Nat.minFac_eq_one_iff.mp h_min_one)
       kinematicSieve prev
 termination_by a

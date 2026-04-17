@@ -14,8 +14,8 @@ non-Archimedean Riemann architecture. It runs strict compilation, algebra synthe
 computational evaluations across the core modules (`KreinSpace`, `Kinematics`,
 `Operator`, and `Distribution`).
 
-All proofs here correspond strictly to the localized topological and functional bounds
-expected by Phase 5, reserving infinite scaling boundaries for Phase 6.
+All proofs here correspond strictly to localized topological and functional bounds,
+reserving infinite scaling boundaries for subsequent work.
 -/
 
 namespace KinematicRiemann.TestSuite
@@ -78,18 +78,24 @@ is strictly idempotent ($P^+ \circ P^+ = P^+$), utilizing the $J^2 = I$ involuti
 -/
 theorem P_plus_idempotent (x : MajorantTopology E) :
     P_plus (𝕜 := 𝕜) (E := E) (P_plus (𝕜 := 𝕜) (E := E) x) = P_plus (𝕜 := 𝕜) (E := E) x := by
+  -- Establish the involutive property (J^2 = I) for the evaluated vector
   have h_J : (continuousJ (𝕜 := 𝕜) (E := E)) ((continuousJ (𝕜 := 𝕜) (E := E)) x) = x := by
     let y : E := x
     have h : HasJOperator.J (R := 𝕜) (V := E) (HasJOperator.J (R := 𝕜) (V := E) y) = y := J_J_eq_x y
     exact h
+  -- Unfold the definition of the orthogonal projection P^+ = 1/2 (I + J)
   dsimp [P_plus]
+  -- Distribute the scalar multiplication and apply the J involution to simplify J(Jx) back to x
   simp only [map_smul, map_add, h_J]
+  -- Reorder the commutative addition (Jx + x = x + Jx)
   have h_comm : (continuousJ (𝕜 := 𝕜) (E := E)) x + x = x + (continuousJ (𝕜 := 𝕜) (E := E)) x :=
     add_comm _ _
   rw [h_comm, ← add_smul]
+  -- Consolidate the distributed scalar fractions (1/2 + 1/2 = 1)
   have h_half : (⅟(2:𝕜) + ⅟(2:𝕜)) = 1 := by
     calc ⅟(2:𝕜) + ⅟(2:𝕜) = 2 * ⅟(2:𝕜) := by ring
     _ = 1 := mul_invOf_self 2
+  -- Apply the consolidated scalar to resolve the idempotence (1 * P^+ x = P^+ x)
   rw [h_half, one_smul]
 
 /--
@@ -111,18 +117,27 @@ Synthesizes a concrete `Decidable` instance for evaluating prime sieve kinematic
 bridging formal proofs with direct computational `#eval` assertions.
 -/
 instance (a b : SemanticAddress) : Decidable (isPrimeStep a b) :=
+  -- Check the structural divisibility condition and prime factor requirement
   if h : a.val ∣ b.val ∧ (b.val / a.val).Prime then
     isTrue <| by
+      -- Extract the prime factor linking the two addresses
       rcases h with ⟨h1, h2⟩
       use (b.val / a.val)
+      -- Confirm the forward algebraic multiplication equates back to the target node
       exact ⟨h2, by rw [Nat.mul_div_cancel' h1]⟩
   else
     isFalse <| by
+      -- Assume a valid prime transition exists to derive a contradiction
       intro ⟨p, hp1, hp2⟩
       apply h
+      -- Prove `a` fundamentally divides `b`
       have h1 : a.val ∣ b.val := Dvd.intro p (Eq.symm hp2)
       refine ⟨h1, ?_⟩
-      rw [hp2, Nat.mul_div_cancel_left p a.pos]
+      -- Confirm the prime quotient is exactly `p`
+      have h_div : (b : ℕ) / (a : ℕ) = p := by
+        rw [hp2]
+        exact Nat.mul_div_cancel_left p a.property
+      rw [h_div]
       exact hp1
 
 #eval ("isPrimeStep 4 8 (expected true):", decide (isPrimeStep ⟨4, by decide⟩ ⟨8, by decide⟩))
@@ -138,23 +153,28 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
     (h_deg : S.sum (fun b => if a.val == b.val then (0 : ℤ) else adjacency a b) =
       localDegree a) :
     S.sum (fun b => combinatorialLaplacian a b) = 0 := by
+  -- Decompose the local Laplacian into its separate degree and adjacency components
   have h_split : ∀ b, combinatorialLaplacian a b =
       (if a.val == b.val then (localDegree a : ℤ) else 0) +
       (if a.val == b.val then (0 : ℤ) else - adjacency a b) := by
     intro b
     dsimp [combinatorialLaplacian]
     split_ifs <;> ring
+  -- Aggregate the sum linearly across the structured finite set
   calc S.sum (fun b => combinatorialLaplacian a b)
     _ = S.sum (fun b => (if a.val == b.val then (localDegree a : ℤ) else 0) +
         (if a.val == b.val then (0 : ℤ) else - adjacency a b)) := by
       apply Finset.sum_congr rfl
       intro b _
       exact h_split b
+    -- Distribute the finite summation linearly over the isolated components
     _ = S.sum (fun b => if a.val == b.val then (localDegree a : ℤ) else 0) +
         S.sum (fun b => if a.val == b.val then (0 : ℤ) else - adjacency a b) := by
       rw [Finset.sum_add_distrib]
+    -- Extract the negative sign to expose the bare positive adjacency
     _ = (localDegree a : ℤ) - S.sum (fun b =>
         if a.val == b.val then (0 : ℤ) else adjacency a b) := by
+      -- Isolate the diagonal degree evaluation using the presence of the base node
       have h1 : S.sum (fun b => if a.val == b.val then (localDegree a : ℤ) else 0) =
           (localDegree a : ℤ) := by
         have h_single : S.sum (fun b => if a.val == b.val then (localDegree a : ℤ) else 0) =
@@ -175,6 +195,7 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
             contradiction
         rw [h_single]
         simp
+      -- Factoring out the localized negatives to reflect the -K transition topology
       have h2 : S.sum (fun b => if a.val == b.val then (0 : ℤ) else - adjacency a b) =
           - S.sum (fun b => if a.val == b.val then (0 : ℤ) else adjacency a b) := by
         rw [← Finset.sum_neg_distrib]
@@ -183,6 +204,7 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
         split_ifs <;> ring
       rw [h1, h2]
       ring
+    -- Nullify the final difference, confirming D - K dynamically resolves to 0 across the boundary
     _ = 0 := by
       rw [h_deg, sub_self]
 
@@ -236,18 +258,23 @@ noncomputable instance : AdelicMeasureSpace ℤ where
     toIsAddLeftInvariant := inferInstance
     lt_top_of_isCompact := by
       intro K hK
+      -- In a discrete topology, a compact set is strictly equivalent to a finite set
       have h_fin : K.Finite := hK.finite_of_discrete
+      -- Consequently, its counting measure must be strictly less than topological infinity
       exact (MeasureTheory.Measure.count_apply_lt_top.mpr h_fin)
     open_pos := by
       intro U _ hU_nonempty
+      -- Extract any element from the non-empty open set
       have ⟨x, hx⟩ := hU_nonempty
       have h_subset : {x} ⊆ U := Set.singleton_subset_iff.mpr hx
+      -- Establish lower bound: measure of the set must be at least 1 (the measure of its singleton)
       have h_le : (1 : ENNReal) ≤ MeasureTheory.Measure.count U := by
         calc (1 : ENNReal) = MeasureTheory.Measure.count {x} := by
                rw [MeasureTheory.Measure.count_singleton]
              _ ≤ MeasureTheory.Measure.count U :=
                MeasureTheory.measure_mono (μ := MeasureTheory.Measure.count) h_subset
       intro h_zero
+      -- Demonstrate that a measure of 0 contradicts the established lower bound of 1
       rw [h_zero] at h_le
       revert h_le
       norm_num
