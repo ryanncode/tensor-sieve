@@ -59,6 +59,23 @@ class AdelicMeasureSpace (X : Type*) [BruhatTitsSpace X]
   is_add_haar_measure : MeasureTheory.Measure.IsAddHaarMeasure volume
 
 /--
+A formal integration structure evaluating Bruhat-Schwartz distributions
+natively against the self-dual additive Haar measure characteristic of totally
+disconnected fields (Tate 1967).
+-/
+structure AdelicIntegral (X : Type*) [BruhatTitsSpace X]
+    [AddGroup X] [IsTopologicalAddGroup X] [AdelicMeasureSpace X]
+    (Y : Type*) [TopologicalSpace Y] [Zero Y] [NormedAddCommGroup Y] [NormedSpace ℝ Y] where
+  integral : BruhatSchwartzFunction X Y → Y
+
+/-- Instantiates Tate's Integration by bridging to Bochner integration over Haar Measure -/
+noncomputable def tateAdelicIntegral {X : Type*} [BruhatTitsSpace X]
+    [AddGroup X] [IsTopologicalAddGroup X] [AdelicMeasureSpace X]
+    {Y : Type*} [TopologicalSpace Y] [Zero Y] [NormedAddCommGroup Y] [NormedSpace ℝ Y] :
+    AdelicIntegral X Y :=
+  ⟨fun f => MeasureTheory.integral MeasureTheory.MeasureSpace.volume f.toFun⟩
+
+/--
 The integral of a Bruhat-Schwartz function with respect to the
 adelic Haar measure over a totally disconnected Bruhat-Tits space.
 This formally replaces continuous integration.
@@ -67,7 +84,7 @@ noncomputable def bruhatIntegral {X : Type*} [BruhatTitsSpace X]
     [AddGroup X] [IsTopologicalAddGroup X] [AdelicMeasureSpace X]
     {Y : Type*} [TopologicalSpace Y] [Zero Y] [NormedAddCommGroup Y] [NormedSpace ℝ Y]
     (f : BruhatSchwartzFunction X Y) : Y :=
-  MeasureTheory.integral MeasureTheory.MeasureSpace.volume f.toFun
+  tateAdelicIntegral.integral f
 
 /-!
 ### Geometric Translation of Kinematics (Phase 5e)
@@ -103,8 +120,20 @@ computational domain into the topological distribution domain.
 lemma sliceToFunction_hasCompactSupport (target : ℕ) (slice : List ℕ) :
     HasCompactSupport (sliceToFunction target slice) := by
   -- The support is bounded by the finite List `slice`
-  -- Formal verification requires finite -> compact in discrete spaces.
-  sorry
+  apply HasCompactSupport.intro' (K := ((slice.map (fun (n : ℕ) => (n : ℤ))).toFinset : Set ℤ))
+  · exact Set.Finite.isCompact (Finset.finite_toSet _)
+  · exact isClosed_discrete _
+  · intro x hx
+    dsimp [sliceToFunction]
+    split_ifs with h
+    · rcases h with ⟨h1, h2⟩
+      exfalso
+      apply hx
+      simp only [Finset.mem_coe, List.mem_toFinset, List.mem_map]
+      use x.toNat
+      refine ⟨h1, ?_⟩
+      exact Int.toNat_of_nonneg h2
+    · rfl
 
 /--
 Translates a discrete array of combinatorial operator collisions
