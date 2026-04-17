@@ -92,29 +92,53 @@ def valuationDivergence (a b : ℕ) : ℕ :=
     between two nodes to evaluate their topological entanglement. -/
 def sharedSemanticRoot (a b : ℕ) : ℕ := Nat.gcd a b
 
+/-- Computable 2D Krein coordinate system over ℤ. -/
+def KreinCoord := ℤ × ℤ
+
+/-- The formal J operator acting as an involution (swapping positive and negative subspaces). -/
+def KreinJ (v : KreinCoord) : KreinCoord := (v.2, v.1)
+
+/-- The formal indefinite bilinear metric [x, y] = x₁y₁ - x₂y₂. -/
+def KreinBilin (u v : KreinCoord) : ℤ := u.1 * v.1 - u.2 * v.2
+
+/-- Natively maps a semantic address to its Krein space unit vector (parity direction).
+    Each prime factorization traversal formally applies the J-operator. -/
+def addressToKreinUnit (n : ℕ) : KreinCoord :=
+  if h : n > 1 then
+    have h1 : 1 < n.minFac := (Nat.minFac_prime (ne_of_gt h)).one_lt
+    have h2 : n / n.minFac < n := Nat.div_lt_self (Nat.lt_trans (by decide) h) h1
+    let parent_vec := addressToKreinUnit (n / n.minFac)
+    KreinJ parent_vec
+  else
+    (1, 0) -- Root maps to positive subspace
+termination_by n
+
+/-- Scales a Krein coordinate vector by a semantic weight. -/
+def KreinScalarMul (c : ℤ) (v : KreinCoord) : KreinCoord :=
+  (c * v.1, c * v.2)
+
 /-- The expanded discrete coherence Hamiltonian.
-    Parity is driven by the depth of the topological entanglement (shared root)
-    to force algebraic wave cancellation across horizontal slices.
+    Parity is driven by the formal indefinite metric acting upon the shared root
+    to force algebraic wave cancellation across horizontal slices natively.
 -/
 def crossBranchAmplitude (a b : ℕ) : ℤ :=
   let g := sharedSemanticRoot a b
-  let shared_weight := countFactors g
-
+  let w := countFactors g
+  let unit_g := addressToKreinUnit g
+  let basis : KreinCoord := (1, 1)
   if a == b then
-    -- Diagonal element governed by the slice's absolute parity
-    let parity_self : ℤ := if shared_weight % 2 == 0 then 1 else -1
-    parity_self * (shared_weight : ℤ)
+    -- Diagonal element: native projection via indefinite metric
+    let vec_g := KreinScalarMul w unit_g
+    KreinBilin vec_g basis
   else
     let dist := valuationDivergence a b
-
     -- MeLoCoToN Logical Jamming (Absolute Zero-Cancellation)
-    if dist > shared_weight then
+    if dist > w then
       0
     else
-      -- J-Operator evaluates the intersection topology, not the absolute nodes
-      let parity_g : ℤ := if shared_weight % 2 == 0 then 1 else -1
-
-      parity_g * ((shared_weight : ℤ) - (dist : ℤ))
+      -- Interference directly evaluates via J-self-adjoint cancellation
+      let vec_g_reduced := KreinScalarMul (w - dist) unit_g
+      KreinBilin vec_g_reduced basis
 
 /-- Computes the Trace of the Hamiltonian across a horizontal slice. -/
 def traceHamiltonian (slice : List ℕ) : ℤ :=
