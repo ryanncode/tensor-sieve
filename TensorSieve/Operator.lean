@@ -93,29 +93,28 @@ def valuationDivergence (a b : ℕ) : ℕ :=
 def sharedSemanticRoot (a b : ℕ) : ℕ := Nat.gcd a b
 
 /-- The expanded discrete coherence Hamiltonian.
-    Enforces long-range GUE level repulsion natively through the indefinite metric's signature.
-    Integrates MeLoCoToN zero-amplitude cancellation and FTNILO delta consistency. -/
+    Parity is driven by the depth of the topological entanglement (shared root)
+    to force algebraic wave cancellation across horizontal slices.
+-/
 def crossBranchAmplitude (a b : ℕ) : ℤ :=
+  let g := sharedSemanticRoot a b
+  let shared_weight := countFactors g
+
   if a == b then
-    -- Diagonal element: Total arithmetic divergence (D)
-    (countFactors a : ℤ)
+    -- Diagonal element governed by the slice's absolute parity
+    let parity_self : ℤ := if shared_weight % 2 == 0 then 1 else -1
+    parity_self * (shared_weight : ℤ)
   else
     let dist := valuationDivergence a b
-    let g := sharedSemanticRoot a b
-    let shared_weight := countFactors g
 
-    -- MeLoCoToN / FTNILO Logical Jamming:
-    -- Strict constraint failure. If divergence exceeds the shared root, the nodes are disjoint.
+    -- MeLoCoToN Logical Jamming (Absolute Zero-Cancellation)
     if dist > shared_weight then
       0
     else
-      -- Krein Space J-Self-Adjoint Projection:
-      -- Nodes map natively to V+ and V- based on the parity of their prime omega function.
-      let parity_a : ℤ := if countFactors a % 2 == 0 then 1 else -1
-      let parity_b : ℤ := if countFactors b % 2 == 0 then 1 else -1
+      -- J-Operator evaluates the intersection topology, not the absolute nodes
+      let parity_g : ℤ := if shared_weight % 2 == 0 then 1 else -1
 
-      -- Interference evaluates organically via the indefinite metric signature
-      parity_a * parity_b * ((shared_weight : ℤ) - (dist : ℤ))
+      parity_g * ((shared_weight : ℤ) - (dist : ℤ))
 
 /-- Computes the Trace of the Hamiltonian across a horizontal slice. -/
 def traceHamiltonian (slice : List ℕ) : ℤ :=
