@@ -17,7 +17,6 @@ exclusively by unique prime factorization constraints.
 namespace KinematicRiemann
 
 open Finset
-open Classical
 
 /--
 A `SemanticAddress` provides the static, absolute structural reality of an integer.
@@ -59,6 +58,7 @@ the finite support history of the semantic address.
 noncomputable def localDegree (a : SemanticAddress) : ℕ :=
   a.val.factorization.sum (fun _ v => v)
 
+open Classical in
 /--
 The local adjacency constraint ($K$).
 Used to form the discrete combinatorial Laplacian ($L_c = D - K$).
