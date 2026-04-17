@@ -70,6 +70,9 @@ class HasJOperator (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module
     [KreinSpace R V] where
   J : V ≃ₗ[R] V
   J_involutive : J.trans J = LinearEquiv.refl R V
+  J_self_adjoint : ∀ x y : V,
+    (KreinSpace.metric (R := R) (V := V)).bilin (J x) y =
+      (KreinSpace.metric (R := R) (V := V)).bilin x (J y)
 
 /--
 A type synonym for $V$ strictly utilized to isolate the positive-definite
