@@ -1,9 +1,11 @@
 import PTSymmetry.MathlibCore.IndefiniteMetric
 import PTSymmetry.MathlibCore.KreinSpace
 import PTSymmetry.MathlibCore.Minkowski
+import PTSymmetry.MathlibCore.KreinBundle
 import PTSymmetry.Physics.MajorantTopology
 import PTSymmetry.Physics.JAdjointHamiltonian
 import PTSymmetry.Physics.GuptaBleuler
+import PTSymmetry.Physics.MajorantBundle
 
 /-!
 # PT-Symmetric Quantum Mechanics (WIP)
