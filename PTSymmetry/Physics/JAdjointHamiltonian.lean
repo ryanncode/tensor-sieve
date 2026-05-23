@@ -53,8 +53,12 @@ Majorant topology, resolving back into the continuous identity map ($P^+ + P^- =
 -/
 theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := 𝕜) (E := E) =
     ContinuousLinearMap.id 𝕜 (MajorantTopology E) := by
+  -- Expand the definitions of the projection operators P^+ and P^-
   dsimp [P_plus, P_minus]
+  -- Distribute the scalar multiplication ⅟2 across the addition and subtraction terms.
   rw [smul_add, smul_sub]
+  -- Rearrange the terms using the abelian group properties of continuous linear maps
+  -- so that the continuous J-operator terms cancel each other out.
   have h1 :
     (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
       (MajorantTopology E) →L[𝕜] (MajorantTopology E)) +
@@ -69,14 +73,18 @@ theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := �
     (⅟(2 : 𝕜) • ContinuousLinearMap.id 𝕜 (MajorantTopology E) :
       (MajorantTopology E) →L[𝕜] (MajorantTopology E)) := by
     abel
+  -- Apply this simplified form containing only the identity maps.
   rw [h1]
+  -- Factor out the continuous identity map to sum the scalar coefficients.
   rw [← add_smul]
+  -- Prove that the sum of the scalar coefficients (1/2 + 1/2) equals 1.
   have h2 : ⅟(2 : 𝕜) + ⅟(2 : 𝕜) = 1 := by
     calc
       ⅟(2 : 𝕜) + ⅟(2 : 𝕜) = (1 : 𝕜) * ⅟(2 : 𝕜) + (1 : 𝕜) * ⅟(2 : 𝕜) := by simp
       _ = (1 + 1 : 𝕜) * ⅟(2 : 𝕜) := by rw [add_mul]
       _ = (2 : 𝕜) * ⅟(2 : 𝕜) := by norm_num
       _ = 1 := mul_invOf_self 2
+  -- Substitute the scalar 1 back in, completing the proof that P^+ + P^- = I.
   rw [h2, one_smul]
 
 end PTSymmetry

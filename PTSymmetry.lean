@@ -6,6 +6,7 @@ import PTSymmetry.Physics.MajorantTopology
 import PTSymmetry.Physics.JAdjointHamiltonian
 import PTSymmetry.Physics.GuptaBleuler
 import PTSymmetry.Physics.MajorantBundle
+import PTSymmetry.Physics.WaveOperator
 
 /-!
 # PT-Symmetric Quantum Mechanics (WIP)

@@ -121,15 +121,23 @@ noncomputable def continuousJ [MajorantPositiveDefinite 𝕜 E] :
       map_smul' := fun r x => J_lin_E.map_smul' r (x : E) }
   LinearEquiv.toContinuousLinearEquivOfBounds J_lin 1 1
     (fun (x : MajorantTopology E) => by
+      -- Forward Bound Proof
+      -- Establish the relationship between the norm squared and the real part
+      -- of the Majorant inner product for the mapped vector (J_lin x).
       have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 =
           RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ (J_lin (x : E))
+      -- Unfold the definition of the Majorant inner product to expose the
+      -- underlying indefinite metric evaluation: [J(Jx), Jx].
       have h2 : majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E)) =
           (KreinSpace.metric (R := 𝕜) (V := E)).bilin (J_lin (J_lin (x : E))) (J_lin (x : E)) := rfl
+      -- Apply the J-operator involution (J² = I) to simplify J(Jx) back to x.
       have h3 : J_lin (J_lin (x : E)) = (x : E) := by
         have h_inv := HasJOperator.J_involutive (R := 𝕜) (V := E)
         exact LinearEquiv.congr_fun h_inv (x : E)
       rw [h3] at h2
+      -- Use the symmetry of the indefinite metric to rewrite [x, Jx] as [Jx, x],
+      -- which by definition is the Majorant inner product [x, x]_J.
       have h4 : (KreinSpace.metric (R := 𝕜) (V := E)).bilin (x : E) (J_lin (x : E)) =
           majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E) := by
         have h_symm := (KreinSpace.metric (R := 𝕜) (V := E)).symm
@@ -138,18 +146,25 @@ noncomputable def continuousJ [MajorantPositiveDefinite 𝕜 E] :
       have h6 : @norm (MajorantTopology E) _ x ^ 2 =
           RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (x : E) (x : E)) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ x
+      -- Substitute the equalities back up the chain to prove that
+      -- norm(J_lin x)² = norm(x)².
       rw [h2] at h1
       rw [← h6] at h1
       have ha : 0 ≤ @norm (MajorantTopology E) _ (J_lin (x : E)) := norm_nonneg _
       have hb : 0 ≤ @norm (MajorantTopology E) _ x := norm_nonneg _
       have h_eq0 : Real.sqrt (@norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2) =
           Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
+      -- Simplify the square roots using the non-negativity of norms.
       rw [Real.sqrt_sq ha] at h_eq0
       rw [Real.sqrt_sq hb] at h_eq0
+      -- Conclude that the norm is perfectly preserved (norm(J x) = norm(x)),
+      -- satisfying the bound <= 1 * norm(x).
       calc @norm (MajorantTopology E) _ (J_lin (x : E)) = @norm (MajorantTopology E) _ x := h_eq0
         _ ≤ 1 * @norm (MajorantTopology E) _ x := by simp
     )
     (fun (x : MajorantTopology E) => by
+      -- Inverse Bound Proof
+      -- Show that the inverse of J_lin is equal to J_lin itself due to involution.
       have h_symm_eq : J_lin.symm (x : E) = J_lin (x : E) := by
         have h_inv := HasJOperator.J_involutive (R := 𝕜) (V := E)
         have h_double := LinearEquiv.congr_fun h_inv (x : E)
@@ -157,6 +172,7 @@ noncomputable def continuousJ [MajorantPositiveDefinite 𝕜 E] :
           congrArg J_lin.symm h_double
         rw [LinearEquiv.symm_apply_apply] at h_apply
         exact h_apply.symm
+      -- Re-establish the norm equality from the forward bound proof.
       have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 =
           RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) (J_lin (x : E)) (J_lin (x : E))) :=
         @InnerProductSpace.norm_sq_eq_re_inner 𝕜 (MajorantTopology E) _ _ _ (J_lin (x : E))
@@ -182,9 +198,12 @@ noncomputable def continuousJ [MajorantPositiveDefinite 𝕜 E] :
           Real.sqrt (@norm (MajorantTopology E) _ x ^ 2) := congrArg Real.sqrt h1
       rw [Real.sqrt_sq ha] at h_eq0
       rw [Real.sqrt_sq hb] at h_eq0
+      -- Substitute the symmetry equivalence to prove the inverse also perfectly
+      -- preserves the norm.
       have h_symm_eq2 : @norm (MajorantTopology E) _ (J_lin.symm (x : E)) =
           @norm (MajorantTopology E) _ (J_lin (x : E)) := by
         exact congrArg (@norm (MajorantTopology E) _) h_symm_eq
+      -- Conclude the inverse bound <= 1 * norm(x).
       calc @norm (MajorantTopology E) _ (J_lin.symm (x : E)) =
           @norm (MajorantTopology E) _ (J_lin (x : E)) := h_symm_eq2
         _ = @norm (MajorantTopology E) _ x := h_eq0
