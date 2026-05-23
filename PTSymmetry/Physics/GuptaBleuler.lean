@@ -20,7 +20,7 @@ open Mathlib.Analysis.InnerProductSpace.Krein
 open LinearMap
 
 variable {𝕜 : Type*} [RCLike 𝕜]
-variable {V : Type*} [AddCommGroup V] [Module 𝕜 V] [KreinSpace 𝕜 V]
+variable {V : Type*} [AddCommGroup V] [Module 𝕜 V] [UniformSpace V] [KreinSpace 𝕜 V]
 
 /--
 The physical state space $V_{phys}$.
@@ -58,5 +58,34 @@ unobservable null subspace ($V_{phys} / V_{null}$).
 -/
 def ObservableHilbertSpace (V_phys : Submodule 𝕜 V) :=
   V_phys ⧸ (nullSubspace V_phys).comap V_phys.subtype
+
+/--
+The induced inner product on the quotient space is well-defined because
+shifting by a null state does not change the metric evaluation for physical states.
+-/
+theorem quotient_metric_well_defined (V_phys : Submodule 𝕜 V)
+    (a₁ a₂ b₁ b₂ : V_phys)
+    (ha : (a₁ - a₂ : V_phys).val ∈ nullSubspace V_phys)
+    (hb : (b₁ - b₂ : V_phys).val ∈ nullSubspace V_phys) :
+    (KreinSpace.metric (R := 𝕜) (V := V)).bilin (a₁ : V) (b₁ : V) =
+    (KreinSpace.metric (R := 𝕜) (V := V)).bilin (a₂ : V) (b₂ : V) := by
+  let M := KreinSpace.metric (R := 𝕜) (V := V)
+  have h_a : (a₁ : V) = (a₂ : V) + (a₁ - a₂ : V_phys).val := by
+    push_cast
+    abel
+  have h_b : (b₁ : V) = (b₂ : V) + (b₁ - b₂ : V_phys).val := by
+    push_cast
+    abel
+  rw [h_a, h_b]
+  rw [LinearMap.map_add₂, LinearMap.map_add, LinearMap.map_add]
+  have h1 : M.bilin (a₂ : V) (b₁ - b₂ : V_phys).val = 0 := by
+    rw [M.symm.eq]
+    exact hb.2 (a₂ : V) a₂.property
+  have h2 : M.bilin (a₁ - a₂ : V_phys).val (b₂ : V) = 0 :=
+    ha.2 (b₂ : V) b₂.property
+  have h3 : M.bilin (a₁ - a₂ : V_phys).val (b₁ - b₂ : V_phys).val = 0 :=
+    ha.2 (b₁ - b₂ : V_phys).val (b₁ - b₂).property
+  rw [h1, h2, h3]
+  simp
 
 end PTSymmetry.GuptaBleuler

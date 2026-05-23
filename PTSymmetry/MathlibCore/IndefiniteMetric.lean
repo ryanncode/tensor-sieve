@@ -26,6 +26,7 @@ and zero evaluations for non-zero vectors.
 structure IndefiniteMetric (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V] where
   bilin : LinearMap.BilinForm R V
   symm : bilin.IsSymm
+  non_degenerate : ∀ (x : V), (∀ (y : V), bilin x y = 0) → x = 0
 
 /--
 Maps the indefinite bilinear metric into its associated quadratic form.

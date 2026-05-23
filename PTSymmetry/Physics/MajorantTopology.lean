@@ -23,7 +23,7 @@ involutive property $J^2 = I$. In Physics, this is the Charge Conjugation
 or Parity operator.
 -/
 class HasJOperator (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V]
-    [KreinSpace R V] where
+    [UniformSpace V] [KreinSpace R V] where
   J : V ≃ₗ[R] V
   J_involutive : J.trans J = LinearEquiv.refl R V
   J_self_adjoint : ∀ x y : V,
@@ -43,8 +43,8 @@ instance {V} [AddCommGroup V] : AddCommGroup (MajorantTopology V) :=
 instance {R V} [CommRing R] [AddCommGroup V] [Module R V] : Module R (MajorantTopology V) :=
   ‹Module R V›
 
-variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [KreinSpace 𝕜 E]
-    [HasJOperator 𝕜 E]
+variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
+    [UniformSpace E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E]
 
 /--
 The induced Majorant inner product derived from the indefinite metric
@@ -59,8 +59,8 @@ def majorantInner (x y : E) : 𝕜 :=
 The structural verification that the induced `majorantInner` fulfills all
 requisite properties of a strictly positive-definite inner product space.
 -/
-class MajorantPositiveDefinite (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
-    [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] where
+class MajorantPositiveDefinite (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E]
+    [Module 𝕜 E] [UniformSpace E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] where
   conj_symm : ∀ x y : E, starRingEnd 𝕜 (majorantInner (𝕜 := 𝕜) (E := E) x y) =
     majorantInner (𝕜 := 𝕜) (E := E) y x
   re_nonneg : ∀ x : E, 0 ≤ RCLike.re (majorantInner (𝕜 := 𝕜) (E := E) x x)
@@ -92,8 +92,9 @@ noncomputable instance [MajorantPositiveDefinite 𝕜 E] : NormedAddCommGroup (M
 noncomputable instance [MajorantPositiveDefinite 𝕜 E] : InnerProductSpace 𝕜 (MajorantTopology E) :=
   InnerProductSpace.ofCore (majorantInnerProductSpaceCore (𝕜 := 𝕜) (E := E)).toCore
 
-class MajorantCompleteSpace (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
-    [KreinSpace 𝕜 E] [HasJOperator 𝕜 E] [MajorantPositiveDefinite 𝕜 E] where
+class MajorantCompleteSpace (𝕜 : Type*) (E : Type*) [RCLike 𝕜] [AddCommGroup E]
+    [Module 𝕜 E] [UniformSpace E] [KreinSpace 𝕜 E] [HasJOperator 𝕜 E]
+    [MajorantPositiveDefinite 𝕜 E] where
   complete : CompleteSpace (MajorantTopology E)
 
 instance [MajorantPositiveDefinite 𝕜 E] [MajorantCompleteSpace 𝕜 E] :
@@ -108,8 +109,16 @@ lemma J_J_eq_x (x : E) :
   have h := HasJOperator.J_involutive (R := 𝕜) (V := E)
   exact LinearEquiv.congr_fun h x
 
-noncomputable def continuousJ : (MajorantTopology E) ≃L[𝕜] (MajorantTopology E) :=
-  let J_lin := HasJOperator.J (R := 𝕜) (V := E)
+noncomputable def continuousJ [MajorantPositiveDefinite 𝕜 E] :
+    (MajorantTopology E) ≃L[𝕜] (MajorantTopology E) :=
+  let J_lin_E := HasJOperator.J (R := 𝕜) (V := E)
+  let J_lin : (MajorantTopology E) ≃ₗ[𝕜] (MajorantTopology E) :=
+    { toFun := fun x => J_lin_E (x : E)
+      invFun := fun x => J_lin_E.symm (x : E)
+      left_inv := fun x => J_lin_E.left_inv (x : E)
+      right_inv := fun x => J_lin_E.right_inv (x : E)
+      map_add' := fun x y => J_lin_E.map_add' (x : E) (y : E)
+      map_smul' := fun r x => J_lin_E.map_smul' r (x : E) }
   LinearEquiv.toContinuousLinearEquivOfBounds J_lin 1 1
     (fun (x : MajorantTopology E) => by
       have h1 : @norm (MajorantTopology E) _ (J_lin (x : E)) ^ 2 =

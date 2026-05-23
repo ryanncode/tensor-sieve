@@ -15,7 +15,7 @@ namespace PTSymmetry
 open LinearMap
 open Mathlib.Analysis.InnerProductSpace.Krein
 
-variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E]
+variable {𝕜 : Type*} {E : Type*} [RCLike 𝕜] [AddCommGroup E] [Module 𝕜 E] [UniformSpace E]
   [KreinSpace 𝕜 E] [HasJOperator 𝕜 E]
 
 /--

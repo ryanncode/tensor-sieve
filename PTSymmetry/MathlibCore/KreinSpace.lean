@@ -1,4 +1,6 @@
 import PTSymmetry.MathlibCore.IndefiniteMetric
+import Mathlib.Topology.UniformSpace.Basic
+import Mathlib.Topology.UniformSpace.Cauchy
 
 /-!
 # Krein Spaces
@@ -11,7 +13,7 @@ decomposition into positive-definite and negative-definite sub-spaces.
 namespace Mathlib.Analysis.InnerProductSpace.Krein
 
 variable {R : Type*} [CommRing R]
-variable {V : Type*} [AddCommGroup V] [Module R V]
+variable {V : Type*} [AddCommGroup V] [Module R V] [UniformSpace V]
 
 /--
 The formal definition of a Krein Space.
@@ -19,11 +21,14 @@ A vector space `V` equipped with an indefinite metric that natively admits
 a fundamental topological decomposition `V = V^+ \oplus V^-`, where `V^+`
 is positive definite and `V^-` is negative definite.
 -/
-class KreinSpace (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V] where
+class KreinSpace (R : Type*) (V : Type*) [CommRing R] [AddCommGroup V] [Module R V]
+    [UniformSpace V] where
   metric : IndefiniteMetric R V
   V_plus : Submodule R V
   V_minus : Submodule R V
   is_compl : IsCompl V_plus V_minus
+  ortho : ∀ x ∈ V_plus, ∀ y ∈ V_minus, metric.bilin x y = 0
+  complete : CompleteSpace V
 
 /--
 The indefinite geometric orthogonal complement of a given subspace `K`.

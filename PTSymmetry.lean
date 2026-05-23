@@ -1,5 +1,6 @@
 import PTSymmetry.MathlibCore.IndefiniteMetric
 import PTSymmetry.MathlibCore.KreinSpace
+import PTSymmetry.MathlibCore.Minkowski
 import PTSymmetry.Physics.MajorantTopology
 import PTSymmetry.Physics.JAdjointHamiltonian
 import PTSymmetry.Physics.GuptaBleuler
