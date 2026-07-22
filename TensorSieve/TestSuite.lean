@@ -6,6 +6,8 @@ import TensorSieve.AxCal
 import TensorSieve.FTNILO
 import TensorSieve.LambdaRing
 import TensorSieve.Theorem
+import TensorSieve.GaloisRepresentation
+import TensorSieve.TatesThesis
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.BilinearForm.Basic
@@ -309,5 +311,19 @@ Validates that SemanticAddress distances are division-free and evaluate purely o
 
 #eval ("SemanticAddress dist_sq 5 2 expected 9:", 
   @DivisionFreeMetric.dist_sq SemanticAddress SemanticAddressMetric (⟨5, by decide⟩) (⟨2, by decide⟩))
+
+/-!
+## 9. Adelic Integration & Galois Representation Tests
+
+Validates the Phase 6.3 refactoring: shadow evaluators, Tate's Thesis structures,
+and the `crossBranchAmplitude` operator tying Galois logic into the Krein metric.
+-/
+
+-- Diagonal: shared root is the number itself, amplitude is non-zero
+#eval ("crossBranchAmplitude 12 12 (expected nonzero):", crossBranchAmplitude 12 12)
+-- Off-diagonal with high valuation divergence: should jam to 0
+#eval ("crossBranchAmplitude 2 3 (expected 0):", crossBranchAmplitude 2 3)
+-- Shared root (gcd=6) but valuation divergence exceeds root depth: jams to 0
+#eval ("crossBranchAmplitude 12 18 (expected 0):", crossBranchAmplitude 12 18)
 
 end KinematicRiemann.TestSuite

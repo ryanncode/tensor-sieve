@@ -2,6 +2,7 @@ name = "tensor_sieve"
 version = "0.1.0"
 keywords = ["math"]
 defaultTargets = ["TensorSieve"]
+testDriver = "Tests"
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -24,4 +25,8 @@ name = "PTSymmetry"
 [[lean_exe]]
 name = "tensor_sieve"
 root = "Main"
+
+[[lean_exe]]
+name = "Tests"
+root = "Tests"
 
