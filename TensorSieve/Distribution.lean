@@ -9,7 +9,7 @@ import Mathlib.Topology.Instances.Discrete
 import TensorSieve.Operator
 
 /-!
-# Phase 5: Distribution and Measure Initialization
+# Distribution and Measure Initialization
 
 This module establishes the topological bedrock for locally constant functions
 over totally disconnected spaces. This is the first step toward implementing
@@ -87,7 +87,7 @@ noncomputable def bruhatIntegral {X : Type*} [BruhatTitsSpace X]
   tateAdelicIntegral.integral f
 
 /-!
-### Geometric Translation of Kinematics (Phase 5e)
+### Geometric Translation of Kinematics
 
 Bridging the discrete, computable arrays from the non-Archimedean sieve
 into the noncomputable, continuous measure spaces required for global

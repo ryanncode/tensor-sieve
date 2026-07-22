@@ -2,6 +2,8 @@ import TensorSieve.KreinSpace
 import TensorSieve.Kinematics
 import TensorSieve.Operator
 import TensorSieve.Distribution
+import TensorSieve.AxCal
+import TensorSieve.FTNILO
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.BilinearForm.Basic
@@ -197,10 +199,10 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
       rw [h_deg, sub_self]
 
 /--
-PHASE 6 BOUNDARY WARNING:
+BOUNDARY WARNING:
 `kinematicSieve` evaluates noncomputable asymptotic scaling across the infinite integer domain.
-This scaling proof belongs natively to Phase 6 universal limits and is documented via `sorry`
-for Phase 5 bounded metrics.
+This scaling proof belongs natively to universal limits and is documented via `sorry`
+for bounded metrics.
 -/
 theorem kinematicSieve_120 : kinematicSieve ⟨120, by decide⟩ = 0 := by sorry
 
@@ -269,5 +271,23 @@ noncomputable instance : AdelicMeasureSpace ℤ where
   }
 
 #synth AdelicMeasureSpace ℤ
+
+/-!
+## 5. AxCal.lean Tests
+
+Validates the constructive execution of division-free metrics.
+-/
+
+#eval ("AxCal Metric (2, 3) to (5, -1) expected 25:", DivisionFreeMetric.dist_sq (2, 3) ((5, -1) : ℤ × ℤ))
+
+/-!
+## 6. FTNILO.lean Tests
+
+Validates classical logical mappings for MeLoCoToN architectures.
+-/
+
+#eval ("diracDeltaGate 5 5 expected 1:", diracDeltaGate 5 5)
+#eval ("diracDeltaGate 5 4 expected 0:", diracDeltaGate 5 4)
+#eval ("plusVector 3 0 expected 1:", plusVector 3 0)
 
 end KinematicRiemann.TestSuite
