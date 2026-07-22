@@ -11,3 +11,5 @@ import TensorSieve.BruhatSchwartz
 import TensorSieve.Theorem
 import TensorSieve.TatesThesis
 import TensorSieve.GaloisRepresentation
+import TensorSieve.CondensedMath
+import TensorSieve.TopologicalPeriodicCyclicHomology
