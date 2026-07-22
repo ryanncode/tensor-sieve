@@ -83,19 +83,14 @@ theorem P_plus_idempotent (x : MajorantTopology E) :
     let y : E := x
     have h : HasJOperator.J (R := 𝕜) (V := E) (HasJOperator.J (R := 𝕜) (V := E) y) = y := J_J_eq_x y
     exact h
-  -- Unfold the definition of the orthogonal projection P^+ = 1/2 (I + J)
-  dsimp [P_plus]
-  -- Distribute the scalar multiplication and apply the J involution to simplify J(Jx) back to x
-  simp only [map_smul, map_add, h_J]
-  -- Reorder the commutative addition (Jx + x = x + Jx)
-  have h_comm : (continuousJ (𝕜 := 𝕜) (E := E)) x + x = x + (continuousJ (𝕜 := 𝕜) (E := E)) x :=
-    add_comm _ _
-  rw [h_comm, ← add_smul]
-  -- Consolidate the distributed scalar fractions (1/2 + 1/2 = 1)
+  -- Unfold the definition of orthogonal projection P^+ = 1/2 (I + J)
+  simp only [P_plus, _root_.add_apply, _root_.smul_apply, ContinuousLinearMap.id_apply,
+    map_smul, map_add]
+  erw [h_J]
+  rw [add_comm _ x, ← add_smul]
   have h_half : (⅟(2:𝕜) + ⅟(2:𝕜)) = 1 := by
     calc ⅟(2:𝕜) + ⅟(2:𝕜) = 2 * ⅟(2:𝕜) := by ring
     _ = 1 := mul_invOf_self 2
-  -- Apply the consolidated scalar to resolve the idempotence (1 * P^+ x = P^+ x)
   rw [h_half, one_smul]
 
 /--
@@ -182,14 +177,7 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
           apply Finset.sum_eq_single a
           · intro b _ hb_neq
             split_ifs with h_eq
-            · exfalso
-              apply hb_neq
-              have h_val : b.val = a.val := (beq_iff_eq.mp h_eq).symm
-              rcases a with ⟨av, ap⟩
-              rcases b with ⟨bv, bp⟩
-              simp only at h_val
-              subst h_val
-              rfl
+            · exact (hb_neq (Subtype.ext (beq_iff_eq.mp h_eq).symm)).elim
             · rfl
           · intro h_not_in
             contradiction
