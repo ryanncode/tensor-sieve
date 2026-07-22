@@ -35,9 +35,13 @@ inductive LocalPlace (K : Type*)
 | finite (p : ℕ) [Fact p.Prime]
 
 /--
-Represents the restricted direct product topology for the finite adèle ring.
-It is a subtype of the infinite product restricted by the condition that 
-all but finitely many components reside in their respective local rings of integers.
+Represents the restricted direct product topology for the global adèle ring.
+
+*Note: This implementation architecture (using `WithAbs` to defunctionalize
+topological embeddings and isolate completions from algebraic type-class instances) 
+is heavily adapted from the `adele-ring_locally-compact` package by Salvatore Mercuri.
+We stub the formal `AdeleRing` definition here to bypass dependency rot while
+preserving the theoretical topological equivalence.*
 -/
 def RestrictedDirectProduct (K : Type*) : Type* :=
   -- This will be formally mapped to the subspace topology.

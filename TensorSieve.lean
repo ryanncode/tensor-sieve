@@ -9,3 +9,5 @@ import TensorSieve.AxCal
 import TensorSieve.FTNILO
 import TensorSieve.BruhatSchwartz
 import TensorSieve.Theorem
+import TensorSieve.TatesThesis
+import TensorSieve.GaloisRepresentation
