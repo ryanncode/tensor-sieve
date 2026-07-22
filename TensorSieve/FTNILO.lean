@@ -30,6 +30,17 @@ def diracDeltaGate (x y : ℤ) : ℤ :=
   if x == y then 1 else 0
 
 /--
+Delta Consistency Lemma: Mathematically guarantees that the Dirac Delta gate 
+can only ever return 1 or 0, preventing continuous scaling factors from 
+contaminating the tensor network.
+-/
+lemma delta_consistency (x y : ℤ) : diracDeltaGate x y = 1 ∨ diracDeltaGate x y = 0 := by
+  dsimp [diracDeltaGate]
+  split
+  · left; rfl
+  · right; rfl
+
+/--
 Left-to-Right Contraction Scheme: O(n^3 4^{n/2}).
 Contracts the initial variable column from top to bottom.
 Since tensor networks evaluate as sequential matrix-matrix multiplications, 

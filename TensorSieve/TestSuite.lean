@@ -4,6 +4,8 @@ import TensorSieve.Operator
 import TensorSieve.Distribution
 import TensorSieve.AxCal
 import TensorSieve.FTNILO
+import TensorSieve.LambdaRing
+import TensorSieve.Theorem
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.BilinearForm.Basic
@@ -289,5 +291,23 @@ Validates classical logical mappings for MeLoCoToN architectures.
 #eval ("diracDeltaGate 5 5 expected 1:", diracDeltaGate 5 5)
 #eval ("diracDeltaGate 5 4 expected 0:", diracDeltaGate 5 4)
 #eval ("plusVector 3 0 expected 1:", plusVector 3 0)
+
+/-!
+## 7. LambdaRing.lean Tests
+
+Validates the F1 descent data constraints and the polynomial firewalls (Adams Operations).
+-/
+
+#eval! ("LambdaRing.psi 3 5 (expected 5):", LambdaRing.psi 3 (5 : ℤ))
+#eval! ("adamsFilter 3 5 (expected 5):", adamsFilter 3 (5 : ℤ))
+
+/-!
+## 8. Theorem.lean / AxCal SemanticAddress Metric Tests
+
+Validates that SemanticAddress distances are division-free and evaluate purely over integers.
+-/
+
+#eval ("SemanticAddress dist_sq 5 2 expected 9:", 
+  @DivisionFreeMetric.dist_sq SemanticAddress SemanticAddressMetric (⟨5, by decide⟩) (⟨2, by decide⟩))
 
 end KinematicRiemann.TestSuite
