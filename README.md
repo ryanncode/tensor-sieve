@@ -1,7 +1,5 @@
 # tensor-sieve
 
-🔗 **[View the `krein` Computational Engine](https://github.com/ryanncode/krein)**
-
 **tensor-sieve** is a Lean 4 formalization project mapping the emergence of quantum chaos directly from discrete arithmetic topologies.
 
 It provides the **Formal Theoretical Warrant** for the non-Archimedean kinematics that drive the Gaussian Unitary Ensemble (GUE) eigenvalue spectrum without relying on continuous Hilbert spaces or physics-based heuristics.
