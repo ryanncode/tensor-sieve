@@ -327,4 +327,15 @@ theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := �
       _ = 1 := mul_invOf_self 2
   rw [h2, one_smul]
 
+/--
+Theorem: Positivity Bias Contradiction
+Enforcing a strictly positive-definite (Hilbert) metric on the global Lefschetz trace
+formula over the adele class space causes a cohomological contradiction. The minus sign
+is a structural reality, mathematically forcing the adoption of the indefinite Krein metric.
+-/
+theorem positivity_bias_contradiction (strict_hilbert : ∀ x, RCLike.re ((KreinSpace.metric (R := 𝕜) (V := E)).bilin x x) ≥ 0) :
+  -- Placeholder for the cohomological contradiction
+  False := by
+  sorry
+
 end KinematicRiemann

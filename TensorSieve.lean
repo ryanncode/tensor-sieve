@@ -1,9 +1,12 @@
 import TensorSieve.Kinematics
+import TensorSieve.LawlessGeneric
+import TensorSieve.MaassFormEmergence
 import TensorSieve.Operator
 import TensorSieve.KreinSpace
 import TensorSieve.Distribution
 import TensorSieve.TestSuite
 import TensorSieve.LambdaRing
+import TensorSieve.F1Descent
 import TensorSieve.AdelicBridge
 import TensorSieve.AxCal
 import TensorSieve.FTNILO

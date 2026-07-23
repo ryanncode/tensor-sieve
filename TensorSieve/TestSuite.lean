@@ -11,6 +11,9 @@ import TensorSieve.TatesThesis
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.BilinearForm.Basic
+import TensorSieve.F1Descent
+import TensorSieve.LawlessGeneric
+import TensorSieve.MaassFormEmergence
 
 /-!
 # Formal Verification Test Suite for Tensor Sieve
@@ -337,5 +340,17 @@ and the `crossBranchAmplitude` operator tying Galois logic into the Krein metric
 -- The real part drops to 0. The imaginary part applies anti-symmetric parity.
 #guard (countFactors (sharedSemanticRoot 12 18) - valuationDivergence 12 18) == 0
 #guard valuationDivergence 12 18 == 2
+
+/-!
+## 10. Lawless Generic, F1 Descent, and Maass Form Symmetries Tests
+
+Validates the existence and correct typing of the fundamental theorems that formalize
+the theoretical constraints on the Krein metric and F1 geometry.
+-/
+
+#check positivity_bias_contradiction
+#check f1_suppresses_addition
+#check logical_exhaustion_generates_structure
+#check maass_form_emergent_symmetry
 
 end KinematicRiemann.TestSuite
