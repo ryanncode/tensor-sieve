@@ -35,8 +35,8 @@ def main():
         reader = csv.DictReader(f)
         for row in reader:
             amplitudes.append(float(row['amplitude']))
-            spacing = int(row['eigenvalue_spacing'])
-            if int(row['jammed']) == 1 and spacing > 0:
+            spacing = float(row['eigenvalue_spacing'])
+            if spacing > 0:
                 spacings.append(spacing)
 
     if not amplitudes:

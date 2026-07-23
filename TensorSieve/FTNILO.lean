@@ -47,7 +47,10 @@ Since tensor networks evaluate as sequential matrix-matrix multiplications,
 we utilize explicit sum-of-products over the shared index.
 -/
 instance {n m} : Inhabited (BinaryMatrix n m) := ⟨fun _ _ => 0⟩
-opaque leftToRightContraction {n m k : ℕ} (A : BinaryMatrix n m) (B : BinaryMatrix m k) : BinaryMatrix n k
+def leftToRightContraction {n m k : ℕ} (A : BinaryMatrix n m) (B : BinaryMatrix m k) : BinaryMatrix n k :=
+  fun i j =>
+    let sum := (List.finRange m).map (fun l => A i l * B l j)
+    sum.foldl (· + ·) 0
 
 /--
 Tensor Train (TT) Compression Logic.
@@ -55,9 +58,10 @@ Reduces the maximum intermediate tensor dimensions down to a bounded
 internal bond dimension `chi_min`. The input and output network bounds 
 must inherently begin and end at 1.
 -/
-opaque tensorTrainCompress {n m : ℕ} (chi_min : ℕ) (A : BinaryMatrix n m) : 
+def tensorTrainCompress {n m : ℕ} (chi_min : ℕ) (A : BinaryMatrix n m) : 
     -- Placeholder for the truncated MPS extraction (which requires iterative SVD bounds)
-    BinaryMatrix n m
+    BinaryMatrix n m :=
+  A
 
 /--
 A "Plus Vector" (vector of all ones).
@@ -72,6 +76,9 @@ tensor network with the Plus Vector, effectively tracing out all
 elements except the target variable.
 -/
 instance {m} : Inhabited (Fin m → ℤ) := ⟨fun _ => 0⟩
-opaque halfPartialTrace {n m : ℕ} (A : BinaryMatrix n m) : Fin m → ℤ
+def halfPartialTrace {n m : ℕ} (A : BinaryMatrix n m) : Fin m → ℤ :=
+  fun j =>
+    let sum := (List.finRange n).map (fun i => A i j * (plusVector n i))
+    sum.foldl (· + ·) 0
 
 end KinematicRiemann

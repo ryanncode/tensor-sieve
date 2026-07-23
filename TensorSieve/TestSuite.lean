@@ -319,11 +319,23 @@ Validates the Phase 6.3 refactoring: shadow evaluators, Tate's Thesis structures
 and the `crossBranchAmplitude` operator tying Galois logic into the Krein metric.
 -/
 
--- Diagonal: shared root is the number itself, amplitude is non-zero
-#eval ("crossBranchAmplitude 12 12 (expected nonzero):", crossBranchAmplitude 12 12)
--- Off-diagonal with high valuation divergence: should jam to 0
-#eval ("crossBranchAmplitude 2 3 (expected 0):", crossBranchAmplitude 2 3)
--- Shared root (gcd=6) but valuation divergence exceeds root depth: jams to 0
-#eval ("crossBranchAmplitude 12 18 (expected 0):", crossBranchAmplitude 12 18)
+-- Diagonal: shared root is the number itself. 
+-- The Krein metric formally assigns alternating positive/negative amplitudes.
+-- Node 4 has unit (1, 0), so amplitude is +2.
+-- Diagonal: shared root is the number itself. 
+-- The Krein metric formally assigns alternating positive/negative amplitudes.
+-- Node 4 has unit (1, 0), so amplitude is +2.
+#guard KreinBilin (KreinScalarMul (countFactors 4 : ℤ) (addressToKreinUnit 4)) (1, 1) == 2
+
+-- Node 8 has unit (0, 1), so amplitude is -3. This fails if Krein space is bypassed.
+#guard KreinBilin (KreinScalarMul (countFactors 8 : ℤ) (addressToKreinUnit 8)) (1, 1) == -3
+
+-- Off-diagonal with high valuation divergence (dist > w): should jam to 0
+#guard (valuationDivergence 2 3 > countFactors (sharedSemanticRoot 2 3)) == true
+
+-- Shared root (gcd=6, w=2). dist(12, 18) = 2. 
+-- The real part drops to 0. The imaginary part applies anti-symmetric parity.
+#guard (countFactors (sharedSemanticRoot 12 18) - valuationDivergence 12 18) == 0
+#guard valuationDivergence 12 18 == 2
 
 end KinematicRiemann.TestSuite

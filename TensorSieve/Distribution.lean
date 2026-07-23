@@ -106,8 +106,8 @@ Translates a discrete horizontal lattice slice (from `Operator.lean`)
 into a pointwise function over the Bruhat-Tits space (ℤ).
 Evaluates the cross-branch amplitude strictly on the provided target node.
 -/
-noncomputable def sliceToFunction (target : ℕ) (slice : List ℕ) : ℤ → ℝ :=
-  fun y => if y.toNat ∈ slice ∧ y ≥ 0 then (crossBranchAmplitude target y.toNat : ℝ) else 0
+noncomputable def sliceToFunction (target : ℕ) (slice : List ℕ) : ℤ → ℂ :=
+  fun y => if y.toNat ∈ slice ∧ y ≥ 0 then crossBranchAmplitude target y.toNat else 0
 
 lemma sliceToFunction_isLocallyConstant (target : ℕ) (slice : List ℕ) :
     IsLocallyConstant (sliceToFunction target slice) := by
@@ -140,7 +140,7 @@ Translates a discrete array of combinatorial operator collisions
 into a formal Bruhat-Schwartz distribution.
 -/
 noncomputable def sliceToBruhatSchwartz (target : ℕ) (slice : List ℕ) :
-    BruhatSchwartzFunction ℤ ℝ :=
+    BruhatSchwartzFunction ℤ ℂ :=
   ⟨sliceToFunction target slice,
    sliceToFunction_isLocallyConstant target slice,
    sliceToFunction_hasCompactSupport target slice⟩
