@@ -24,7 +24,7 @@ The shift operator calculates localized arithmetic divergence across the lattice
 
 ### 4. The Discrete Selberg-Weil Trace Identity
 In [`TensorSieve/DiscreteTrace.lean`](file:///home/gemini/Data/Code/tensor-sieve/TensorSieve/DiscreteTrace.lean), length-2 closed walks on the Bruhat-Tits quiver decouple the squared Laplacian into diagonal degree components and prime weights:
-$$\operatorname{Tr}(L_c^2) = \operatorname{Tr}(D^2) + \sum_{p \in P} \Phi(p, S)$$
+$$\mathrm{Tr}(L_c^2) = \mathrm{Tr}(D^2) + \sum_{p \in P} \Phi(p, S)$$
 where $\Phi(p, S) = \sum_{x \in S} v_p(x)$ measures slice prime valuation density. The theorem connects operator traces to arithmetic prime sums using standard Lean 4 foundations without custom axioms.
 
 ## Visualizing the Energy Landscape
@@ -55,7 +55,7 @@ The discrete sieve extracts certified critical line zeros ($\gamma_1 = 14.134725
 
 ### Numerical Verification Benchmark
 
-The standalone script [`scripts/verify_riemann_zeros.py`](file:///home/gemini/Data/Code/tensor-sieve/scripts/verify_riemann_zeros.py) sweeps frequencies across composite seeds up to arbitrary magnitudes ($P = 1000\# \sim 10^{415.3}$ and $P = 3000\# \sim 10^{1273.5}$) in under 0.5 seconds:
+The standalone script [`scripts/verify_riemann_zeros.py`](file:///home/gemini/Data/Code/tensor-sieve/scripts/verify_riemann_zeros.py) sweeps frequencies across composite seeds up to arbitrary magnitudes (such as primorial seeds 1000# $\sim 10^{415.3}$ and 3000# $\sim 10^{1273.5}$) in under 0.5 seconds:
 
 | Index ($n$) | LMFDB Certified Zero ($\gamma_n$) | Sieve Resonance Peak ($t$) | Absolute Error | Relative Error |
 |---|---|---|---|---|
