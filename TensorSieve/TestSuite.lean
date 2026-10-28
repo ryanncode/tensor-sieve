@@ -6,6 +6,7 @@ import TensorSieve.AxCal
 import TensorSieve.FTNILO
 import TensorSieve.LambdaRing
 import TensorSieve.Theorem
+import TensorSieve.PunctureMask
 import TensorSieve.GaloisRepresentation
 import TensorSieve.TatesThesis
 import Mathlib.Data.Complex.Basic
@@ -352,5 +353,24 @@ the theoretical constraints on the Krein metric and F1 geometry.
 #check f1_suppresses_addition
 #check logical_exhaustion_generates_structure
 #check maass_form_emergent_symmetry
+
+/-!
+## 11. Multiplicative Punctures and Global Spectral Invariance Tests
+
+Validates the discrete counterpart to OpenAI's character puncture masks (Quasi-RH Section 4.1 & 5.1)
+and the formal verification of the global spectral invariance theorem with zero remaining sorry stubs.
+-/
+
+#guard coprimalityMask 12 25 == 1
+#guard coprimalityMask 12 18 == 0
+#guard valuationZeroMask 3 10 == 1
+#guard valuationZeroMask 3 12 == 0
+
+#check coprimalityMask_consistency
+#check coprimalityMask_eq_diracDeltaGate
+#check coprimality_mobius_expansion
+#check coprime_crossBranch_jam
+#check traceHamiltonian_is_int
+#check global_spectral_invariance
 
 end KinematicRiemann.TestSuite

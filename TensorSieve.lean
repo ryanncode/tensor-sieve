@@ -10,6 +10,7 @@ import TensorSieve.F1Descent
 import TensorSieve.AdelicBridge
 import TensorSieve.AxCal
 import TensorSieve.FTNILO
+import TensorSieve.PunctureMask
 import TensorSieve.BruhatSchwartz
 import TensorSieve.Theorem
 import TensorSieve.TatesThesis
