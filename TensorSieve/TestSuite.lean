@@ -7,6 +7,7 @@ import TensorSieve.FTNILO
 import TensorSieve.LambdaRing
 import TensorSieve.Theorem
 import TensorSieve.PunctureMask
+import TensorSieve.DiscreteTrace
 import TensorSieve.GaloisRepresentation
 import TensorSieve.TatesThesis
 import Mathlib.Data.Complex.Basic
@@ -372,5 +373,23 @@ and the formal verification of the global spectral invariance theorem with zero 
 #check coprime_crossBranch_jam
 #check traceHamiltonian_is_int
 #check global_spectral_invariance
+
+/-!
+## 12. Discrete Trace Identity and Prime Density Tests (Path 3)
+
+Validates the constructive discrete Selberg-Weil trace identity connecting
+combinatorial Laplacian traces to Bruhat-Tits prime valuation densities.
+-/
+
+#check laplacian_sq_entry_pointwise
+#check laplacian_sq_diag_eq
+#check discrete_trace_sq_laplacian_eq
+#check trace_k_sq_eq_sum_omega
+#check discrete_selberg_trace_identity
+#check sum_omega_eq_sum_prime_densities
+#check discrete_selberg_weil_explicit_formula
+
+#print axioms discrete_selberg_weil_explicit_formula
+#print axioms global_spectral_invariance
 
 end KinematicRiemann.TestSuite

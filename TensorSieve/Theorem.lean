@@ -52,22 +52,23 @@ lemma crossBranchAmplitude_self_eq_cast (a : ℕ) :
   dsimp [crossBranchAmplitude, diagonalAmplitudeInt]
   have h_eq : (a == a) = true := beq_self_eq_true a
   rw [h_eq, if_pos rfl]
-  ext
-  · rfl
-  · rfl
+  apply Complex.ext
+  · simp
+  · simp
 
 /--
 Lemma: Folding diagonal amplitudes across a list preserves integer values.
 -/
 lemma foldl_diagonal_eq_cast (l : List ℕ) (init : ℤ) :
     l.foldl (fun acc a => acc + crossBranchAmplitude a a) (init : ℂ) =
-      (l.foldl (fun acc a => acc + diagonalAmplitudeInt a) init : ℂ) := by
+      ((l.foldl (fun acc a => acc + diagonalAmplitudeInt a) init : ℤ) : ℂ) := by
   induction l generalizing init with
   | nil => rfl
   | cons head tail ih =>
     dsimp [List.foldl]
     rw [crossBranchAmplitude_self_eq_cast head]
-    have h_add : (init : ℂ) + (diagonalAmplitudeInt head : ℂ) = ((init + diagonalAmplitudeInt head : ℤ) : ℂ) := by
+    have h_add : (init : ℂ) + (diagonalAmplitudeInt head : ℂ) =
+        ((init + diagonalAmplitudeInt head : ℤ) : ℂ) := by
       push_cast
       rfl
     rw [h_add]

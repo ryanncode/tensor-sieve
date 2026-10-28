@@ -67,12 +67,16 @@ theorem coprimalityMask_eq_diracDeltaGate (a b : ℕ) :
       exact congrArg Nat.cast hc
     rw [h1, h2]
   · have h1 : (Nat.gcd a b == 1) = false := by
-      rw [beq_iff_eq]
-      exact hc
+      cases h : (Nat.gcd a b == 1)
+      · rfl
+      · have : Nat.gcd a b = 1 := beq_iff_eq.mp h
+        contradiction
     have h2 : ((Nat.gcd a b : ℤ) == 1) = false := by
-      rw [beq_iff_eq]
-      intro heq
-      exact hc (Nat.cast_injective heq)
+      cases h : ((Nat.gcd a b : ℤ) == 1)
+      · rfl
+      · have : (Nat.gcd a b : ℤ) = 1 := beq_iff_eq.mp h
+        have : Nat.gcd a b = 1 := Nat.cast_injective this
+        contradiction
     rw [h1, h2]
 
 /--
@@ -83,10 +87,10 @@ expressed over the arithmetic Möbius function for any positive semantic address
 theorem coprimality_mobius_expansion (a b : SemanticAddress) :
     (coprimalityMask a.val b.val : ℤ) =
       (Nat.gcd a.val b.val).divisors.sum (fun d => (ArithmeticFunction.moebius d : ℤ)) := by
-  have h_conv : ((ζ * μ : ArithmeticFunction ℤ) (Nat.gcd a.val b.val)) =
+  have h_conv : ((↑ArithmeticFunction.zeta * ArithmeticFunction.moebius) (Nat.gcd a.val b.val) : ℤ) =
       (Nat.gcd a.val b.val).divisors.sum (fun d => (ArithmeticFunction.moebius d : ℤ)) := by
     rw [coe_zeta_mul_apply]
-  have h_one : (ζ * μ : ArithmeticFunction ℤ) = 1 := coe_zeta_mul_moebius
+  have h_one : (↑ArithmeticFunction.zeta * ArithmeticFunction.moebius : ArithmeticFunction ℤ) = 1 := coe_zeta_mul_moebius
   rw [h_one, one_apply] at h_conv
   rw [← h_conv]
   dsimp [coprimalityMask]
@@ -94,8 +98,10 @@ theorem coprimality_mobius_expansion (a b : SemanticAddress) :
   · have hbeq : (Nat.gcd a.val b.val == 1) = true := beq_iff_eq.mpr hg
     rw [hbeq, if_pos rfl, if_pos hg]
   · have hbeq : (Nat.gcd a.val b.val == 1) = false := by
-      rw [beq_iff_eq]
-      exact hg
+      cases h : (Nat.gcd a.val b.val == 1)
+      · rfl
+      · have : Nat.gcd a.val b.val = 1 := beq_iff_eq.mp h
+        contradiction
     rw [hbeq, if_neg Bool.false_ne_true, if_neg hg]
 
 /--
@@ -108,23 +114,24 @@ theorem coprime_crossBranch_jam (a b : ℕ) (hcoprime : Nat.gcd a b = 1)
     (hdist : valuationDivergence a b > 0) :
     crossBranchAmplitude a b = 0 := by
   dsimp [crossBranchAmplitude, sharedSemanticRoot]
-  rw [hcoprime]
-  have hw : countFactors 1 = 0 := by
-    dsimp [countFactors]
   have h_ab : (a == b) = false := by
-    rw [beq_iff_eq]
-    intro heq
-    subst heq
-    have h_gcd_self : Nat.gcd a a = a := Nat.gcd_self a
-    rw [h_gcd_self] at hcoprime
-    subst hcoprime
-    dsimp [valuationDivergence] at hdist
-    contradiction
+    cases h : (a == b)
+    · rfl
+    · have heq : a = b := beq_iff_eq.mp h
+      subst heq
+      have h_gcd_self : Nat.gcd a a = a := Nat.gcd_self a
+      rw [h_gcd_self] at hcoprime
+      subst hcoprime
+      dsimp [valuationDivergence] at hdist
+      contradiction
   rw [h_ab, if_neg Bool.false_ne_true]
-  rw [hw]
-  have h_gt : valuationDivergence a b > 0 := hdist
-  have h_cond : (valuationDivergence a b > 0) = true := decide_eq_true h_gt
-  rw [h_cond, if_pos rfl]
+  have hw : countFactors (Nat.gcd a b) = 0 := by
+    rw [hcoprime, countFactors]
+    rfl
+  have hcond : valuationDivergence a b > countFactors (Nat.gcd a b) := by
+    rw [hw]
+    exact hdist
+  rw [if_pos hcond]
   rfl
 
 end KinematicRiemann

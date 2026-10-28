@@ -13,7 +13,6 @@ import TensorSieve.FTNILO
 import TensorSieve.PunctureMask
 import TensorSieve.BruhatSchwartz
 import TensorSieve.Theorem
+import TensorSieve.DiscreteTrace
 import TensorSieve.TatesThesis
 import TensorSieve.GaloisRepresentation
-import TensorSieve.CondensedMath
-import TensorSieve.TopologicalPeriodicCyclicHomology
