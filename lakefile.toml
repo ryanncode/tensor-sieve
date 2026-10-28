@@ -25,9 +25,11 @@ name = "PTSymmetry"
 
 [[lean_exe]]
 name = "tensor_sieve"
+srcDir = "cmd"
 root = "Main"
 
 [[lean_exe]]
 name = "Tests"
+srcDir = "tests"
 root = "Tests"
 

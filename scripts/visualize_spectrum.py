@@ -23,15 +23,16 @@ def main():
     Main entry point for the visualization script.
     Checks for the data file, processes the output, and generates the spectral plots.
     """
-    if not os.path.exists('data.csv'):
-        print("data.csv not found. Did you run `lake exe tensor_sieve > data.csv`?")
+    csv_path = 'data/data.csv' if os.path.exists('data/data.csv') else 'data.csv'
+    if not os.path.exists(csv_path):
+        print(f"Data file not found. Did you run `lake exe tensor_sieve > data/data.csv`?")
         sys.exit(1)
         
     amplitudes = []
     spacings = []
     
     # Parse the emitted stream from the Lean executable
-    with open('data.csv', 'r') as f:
+    with open(csv_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             amplitudes.append(float(row['amplitude']))
@@ -147,8 +148,10 @@ def main():
     
     # Save the output to disk
     plt.tight_layout()
-    plt.savefig('spectrum_visualization.png')
-    print("Saved visualization to spectrum_visualization.png")
+    os.makedirs('assets', exist_ok=True)
+    out_plot = 'assets/spectrum_visualization.png'
+    plt.savefig(out_plot)
+    print(f"Saved visualization to {out_plot}")
 
 if __name__ == '__main__':
     main()

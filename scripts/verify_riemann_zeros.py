@@ -201,7 +201,7 @@ def main():
     parser.add_argument("--num-zeros", type=int, default=10, help="Number of certified zeros to verify. Default: 10")
     parser.add_argument("--sigma", type=float, default=0.15, help="Gaussian wavepacket resolution width. Default: 0.15")
     parser.add_argument("--power-bound", type=int, default=100000, help="Upper bound for prime power multiplicities. Default: 100000")
-    parser.add_argument("--plot", type=str, default="zeros_resonance.png", help="Path to save verification plot. Default: zeros_resonance.png")
+    parser.add_argument("--plot", type=str, default="assets/zeros_resonance.png", help="Path to save verification plot. Default: assets/zeros_resonance.png")
     parser.add_argument("--no-plot", action="store_true", help="Disable plot generation.")
 
     args = parser.parse_args()

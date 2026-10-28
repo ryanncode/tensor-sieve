@@ -31,7 +31,7 @@ where $\Phi(p, S) = \sum_{x \in S} v_p(x)$ measures slice prime valuation densit
 
 While Lean 4 guarantees the logic, transversal evaluation requires navigating large integer boundaries (e.g., $N = 27,720,000$). The output stream of these tensor evaluations maps discrete bottlenecks into an unfolded continuous spectrum. 
 
-![GUE Energy Landscape](spectrum_visualization.png)
+![GUE Energy Landscape](assets/spectrum_visualization.png)
 
 ### Understanding the Data
 
@@ -51,7 +51,7 @@ This log-log plot evaluates the discrete Fourier transform of the pair correlati
 
 The discrete sieve extracts certified critical line zeros ($\gamma_1 = 14.134725\dots, \gamma_2 = 21.022040\dots$) through coherent phase resonance over the prime-valuation lattice. By projecting harmonic frequencies across prime power coordinates $u = \ln(p^k)$ weighted by normalized Weil coefficients $\Lambda(n)/\sqrt{n}$, the discrete sieve produces sharp spectral peaks at the imaginary ordinates of non-trivial zeros.
 
-![Riemann Zero Resonance Spectrum](zeros_resonance.png)
+![Riemann Zero Resonance Spectrum](assets/zeros_resonance.png)
 
 ### Numerical Verification Benchmark
 
