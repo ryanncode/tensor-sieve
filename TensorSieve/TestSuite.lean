@@ -306,11 +306,14 @@ Validates the F1 descent data constraints and the polynomial firewalls (Adams Op
 /-!
 ## 8. Theorem.lean / AxCal SemanticAddress Metric Tests
 
-Validates that SemanticAddress distances are division-free and evaluate purely over integers.
+Validates that `SemanticAddressMetric` computes the symmetric, division-free
+`p`-adic `L¹` valuation divergence over `ℤ`.
 -/
 
-#eval ("SemanticAddress dist_sq 5 2 expected 9:", 
+#eval ("SemanticAddress p-adic L1 distance 5 to 2 (expected 2):",
   @DivisionFreeMetric.dist_sq SemanticAddress SemanticAddressMetric (⟨5, by decide⟩) (⟨2, by decide⟩))
+#guard @DivisionFreeMetric.dist_sq SemanticAddress SemanticAddressMetric (⟨5, by decide⟩) (⟨2, by decide⟩) == 2
+#guard @DivisionFreeMetric.dist_sq SemanticAddress SemanticAddressMetric (⟨12, by decide⟩) (⟨18, by decide⟩) == 2
 
 /-!
 ## 9. Adelic Integration & Galois Representation Tests
@@ -377,7 +380,16 @@ and the formal verification of the global spectral invariance theorem with zero 
 #check coprimalityMask_eq_diracDeltaGate
 #check coprimality_mobius_expansion
 #check coprime_crossBranch_jam
+#check leftToRightContraction_eq_mul
+#check halfPartialTrace_eq_sum
+#check trivialGaloisRepresentation
+#check SemanticAddressMetric_symm
+#check diagonalAmplitudeInt_eq
+#check countFactors_div_prime
 #check traceHamiltonian_is_int
+#check traceHamiltonian_of_uniform_weight
+#check sliceJ_of_uniform_weight
+#check sliceKreinOperator_isHermitian_of_uniform_weight
 #check global_spectral_invariance
 
 /-!
@@ -403,6 +415,11 @@ combinatorial Laplacian traces to Bruhat-Tits prime valuation densities.
 #print axioms sliceRealKreinLinearMap_isJAdjoint
 #print axioms sliceRealKreinOp_eq_re_sliceKreinOperator
 #print axioms kinematicSieve_eq_one
+#print axioms leftToRightContraction_eq_mul
+#print axioms traceHamiltonian_of_uniform_weight
+#print axioms sliceJ_of_uniform_weight
+#print axioms sliceKreinOperator_isHermitian_of_uniform_weight
+#print axioms countFactors_div_prime
 #print axioms global_spectral_invariance
 
 end KinematicRiemann.TestSuite

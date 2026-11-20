@@ -19,19 +19,15 @@ remains logically consistent without non-termination loops.
 #eval emissionSpectrumDown 27720 20
 
 /--
-Streams the data directly to standard output as a comma-separated format.
-This function traces the local degree, the topological jams, and the
-dynamic eigenvalue spacing.
+Streams the downward slice data to standard output as CSV (`level,x,local_degree`).
 
 - `start`: The starting semantic address (an integer with high prime multiplicity)
 - `max_steps`: The depth of the p-adic tree slice iteration
 -/
 def emitDataDown (start : ℕ) (max_steps : ℕ) : IO Unit := do
+  IO.println "level,x,local_degree"
   let data := emissionSpectrumDown start max_steps
-  let mut current_lvl : ℕ := 0
   for (lvl, x, deg) in data do
-    if lvl != current_lvl then
-      current_lvl := lvl
     IO.println s!"{lvl},{x},{deg}"
 
 /--

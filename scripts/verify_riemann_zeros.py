@@ -2,13 +2,12 @@
 """
 verify_riemann_zeros.py
 
-Standalone numerical verification engine extracting physical Riemann zero heights
-(gamma_1 = 14.134725..., gamma_2 = 21.022040..., etc.) from discrete p-adic tree
-kinematics and prime valuation spectra.
+Standalone numerical benchmark evaluating the classical Gaussian-damped Weil
+explicit-formula cosine sum over prime powers u = ln(p^k) weighted by
+(ln p / p^(k/2)) * exp(-0.5 * (sigma * u)^2), comparing peak heights against
+certified Riemann zeta zero ordinates gamma_1, gamma_2, ...
 
-Designed to operate over massive arithmetic seeds (e.g., Primorials scaling
-from 10^17 up to 10^500+) using exact prime-power valuation coordinates without
-64-bit integer overflow.
+This script is independent of the finite slice matrices in TensorSieve/Operator.lean.
 """
 
 import argparse

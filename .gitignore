@@ -11,4 +11,6 @@ build/
 # IDE-specific (Optional but recommended)
 .DS_Store
 .vscode/.pylintrc
+__pycache__/
+*.pyc
 EOF

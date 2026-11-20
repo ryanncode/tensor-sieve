@@ -6,7 +6,7 @@
 
 - **`TensorSieve/` and `PTSymmetry/` (Verified Lean 4 Core):** Compiles under Lean `v4.32.0` with zero `sorry` placeholders and zero custom axioms; every core theorem depends only on Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`).
 - **`TensorSieve/Speculative/` (Archived Exploratory Sketches):** Unproven research stubs (`CondensedMath.lean`, `TopologicalPeriodicCyclicHomology.lean`, `AdelicBridge.lean`, `TatesThesis.lean`) kept out of the main build (`TensorSieve.lean` does not import them).
-- **`scripts/` (Numerical Diagnostics):** Standalone Python tools for spectral spacing tests against random-matrix null models (`adelic_operator_probe.py`) and independent Weil explicit-formula benchmarks (`verify_riemann_zeros.py`).
+- **`scripts/` (Numerical Diagnostics):** Standalone Python tools for spectral spacing tests against random-matrix null models (`adelic_operator_probe.py`), Hermitian slice diagonalization plots from `cmd/Main.lean` output (`visualize_spectrum.py`), and independent Weil explicit-formula benchmarks (`verify_riemann_zeros.py`).
 
 ## Verified Lean 4 Modules
 
@@ -17,7 +17,8 @@
 | [TensorSieve/DiscreteTrace.lean](TensorSieve/DiscreteTrace.lean) | Proves an abstract finite-graph trace decomposition and discharges all hypotheses unconditionally for prime-step graphs in `concrete_prime_step_selberg_trace`: $\mathrm{Tr}(L_c^2) = \mathrm{Tr}(D^2) + \sum_{p \in P} \sum_{x \in S} \deg_p(x, S)$. Also defines general walk-length matrix powers `matrixPow` and traces `discreteTracePow`. |
 | [TensorSieve/Kinematics.lean](TensorSieve/Kinematics.lean) | Well-founded divisibility ordering on positive integers and `kinematicSieve_eq_one` (minimal-prime descent terminates cleanly at `1` for every positive integer). |
 | [TensorSieve/LambdaRing.lean](TensorSieve/LambdaRing.lean) & [F1Descent.lean](TensorSieve/F1Descent.lean) | Instantiates Borger's Frobenius-lift $\Lambda$-ring structure on $\mathbb{Z}$ via Fermat's Little Theorem (`ZMod.pow_card`) and proves Adams ring-homomorphism properties. |
-| [TensorSieve/PunctureMask.lean](TensorSieve/PunctureMask.lean) & [Theorem.lean](TensorSieve/Theorem.lean) | Coprimality indicator gates, Möbius inversion expansion, integer trace bounds (`traceHamiltonian_is_int`), and slice invariance (`global_spectral_invariance`). |
+| [TensorSieve/PunctureMask.lean](TensorSieve/PunctureMask.lean) & [Theorem.lean](TensorSieve/Theorem.lean) | Coprimality indicator gates, Möbius inversion expansion, symmetric $p$-adic $L^1$ tree metric on `SemanticAddress`, prime-division factor drop (`countFactors_div_prime`), closed-form uniform-weight trace (`traceHamiltonian_of_uniform_weight`), and proof that single constant-weight slices have scalar symmetry $J = (-1)^k I$ and Hermitian `sliceKreinOperator`. |
+| [TensorSieve/FTNILO.lean](TensorSieve/FTNILO.lean) & [GaloisRepresentation.lean](TensorSieve/GaloisRepresentation.lean) | Integer indicator gates (`diracDeltaGate`), exact matrix-multiplication equivalence for finite contractions (`leftToRightContraction_eq_mul`, `halfPartialTrace_eq_sum`), and Krein-isometric group representations (`G : Type*` with `[Group G]` acting by indefinite-metric isometries). |
 | [PTSymmetry/](PTSymmetry/) | Standalone indefinite-metric Krein-space package covering Minkowski signature validation (`Minkowski.lean`), fundamental symmetry $J$, the induced positive-definite Majorant Hilbert space (`MajorantTopology.lean`), cone projections (`P_plus_add_P_minus`), Gupta–Bleuler physical subspaces, and $J$-self-adjoint Hamiltonians. |
 
 ## Building and Running Tests
