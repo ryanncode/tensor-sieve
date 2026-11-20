@@ -327,15 +327,17 @@ theorem P_plus_add_P_minus : P_plus (𝕜 := 𝕜) (E := E) + P_minus (𝕜 := �
       _ = 1 := mul_invOf_self 2
   rw [h2, one_smul]
 
+omit [HasJOperator 𝕜 E] [MajorantPositiveDefinite 𝕜 E] [Invertible (2 : 𝕜)] in
 /--
-Theorem: Positivity Bias Contradiction
-Enforcing a strictly positive-definite (Hilbert) metric on the global Lefschetz trace
-formula over the adele class space causes a cohomological contradiction. The minus sign
-is a structural reality, mathematically forcing the adoption of the indefinite Krein metric.
+Theorem: Strict Indefiniteness Separation.
+Whenever an indefinite metric space contains a negative-norm vector `[v, v] < 0`,
+its metric cannot be positive-semidefinite.
 -/
-theorem positivity_bias_contradiction (strict_hilbert : ∀ x, RCLike.re ((KreinSpace.metric (R := 𝕜) (V := E)).bilin x x) ≥ 0) :
-  -- Placeholder for the cohomological contradiction
-  False := by
-  sorry
+theorem indefinite_not_posSemidef_of_neg_vec
+    (h_neg : ∃ v : E, RCLike.re ((KreinSpace.metric (R := 𝕜) (V := E)).bilin v v) < 0) :
+    ¬ (∀ x : E, RCLike.re ((KreinSpace.metric (R := 𝕜) (V := E)).bilin x x) ≥ 0) := by
+  intro h_pos
+  obtain ⟨v, hv⟩ := h_neg
+  exact absurd (h_pos v) (not_le.mpr hv)
 
 end KinematicRiemann

@@ -9,13 +9,9 @@ import PTSymmetry.Physics.MajorantBundle
 import PTSymmetry.Physics.WaveOperator
 
 /-!
-# PT-Symmetric Quantum Mechanics (WIP)
+# PT-Symmetric Quantum Mechanics and Krein Spaces
 
-This project formalizes the foundational mathematics required for
-PT-Symmetric Quantum Mechanics and generalized indefinite metric spaces
-(such as Gupta-Bleuler quantization).
-
-It provides a clean, abstract mathematical interface (Krein Spaces,
-Indefinite Metrics) separated from specific applications, allowing
-the algebraic definitions to be proposed to Mathlib cleanly.
+This standalone Lean 4 library formalizes indefinite metric spaces, Krein spaces,
+majorant topologies, $J$-self-adjoint Hamiltonians, and Gupta–Bleuler quantization
+with zero custom axioms and zero `sorry` placeholders.
 -/

@@ -149,4 +149,81 @@ noncomputable def kinematicSieve (a : SemanticAddress) : ℕ :=
       kinematicSieve prev
 termination_by a
 
+/--
+For any `a : SemanticAddress` with `a.val ≠ 1`, stepping from `maximalProperDivisor a`
+to `a` multiplies by the prime `a.val.minFac`, so `tensorGate (maximalProperDivisor a) a = 1`.
+-/
+theorem tensorGate_maximalProperDivisor_eq_one (a : SemanticAddress) (ha : a.val ≠ 1) :
+    tensorGate (maximalProperDivisor a) a = 1 := by
+  dsimp [tensorGate]
+  set p := a.val.minFac with hp_def
+  set prev := maximalProperDivisor a with hprev_def
+  have hp : p.Prime := Nat.minFac_prime ha
+  have hprev_mul : prev.val * p = a.val := Nat.div_mul_cancel (Nat.minFac_dvd a.val)
+  have hprev_ne : prev.val ≠ 0 := prev.property.ne'
+  have hfac : a.val.factorization = prev.val.factorization + Finsupp.single p 1 := by
+    rw [← hprev_mul, Nat.factorization_mul hprev_ne hp.ne_zero, hp.factorization]
+  have hp_mem : p ∈ prev.val.primeFactors ∪ a.val.primeFactors := by
+    apply Finset.mem_union_right
+    exact Nat.mem_primeFactors.mpr ⟨hp, Nat.minFac_dvd a.val, a.property.ne'⟩
+  have h_sum :
+      (prev.val.primeFactors ∪ a.val.primeFactors).sum (fun q =>
+        (if a.val.factorization q == prev.val.factorization q + 1 then 1 else 0) *
+        ((prev.val.primeFactors ∪ a.val.primeFactors).erase q).prod (fun r =>
+          if a.val.factorization r == prev.val.factorization r then 1 else 0)) =
+      (if a.val.factorization p == prev.val.factorization p + 1 then 1 else 0) *
+      ((prev.val.primeFactors ∪ a.val.primeFactors).erase p).prod (fun r =>
+        if a.val.factorization r == prev.val.factorization r then 1 else 0) := by
+    apply Finset.sum_eq_single p
+    · intro q _ hqp
+      have hq_eq : a.val.factorization q = prev.val.factorization q := by
+        rw [hfac, Finsupp.add_apply, Finsupp.single_eq_of_ne hqp, add_zero]
+      have hne : (a.val.factorization q == prev.val.factorization q + 1) = false := by
+        rw [hq_eq]
+        exact beq_false_of_ne (by omega)
+      simp [hne]
+    · intro hnot
+      exact absurd hp_mem hnot
+  rw [h_sum]
+  have hp_eq : a.val.factorization p = prev.val.factorization p + 1 := by
+    rw [hfac, Finsupp.add_apply, Finsupp.single_eq_same]
+  have hp_beq : (a.val.factorization p == prev.val.factorization p + 1) = true :=
+    beq_iff_eq.mpr hp_eq
+  have h_prod :
+      ((prev.val.primeFactors ∪ a.val.primeFactors).erase p).prod (fun r =>
+        if a.val.factorization r == prev.val.factorization r then 1 else 0) = 1 := by
+    apply Finset.prod_eq_one
+    intro r hr
+    have hrp : r ≠ p := (Finset.mem_erase.mp hr).1
+    have hr_eq : a.val.factorization r = prev.val.factorization r := by
+      rw [hfac, Finsupp.add_apply, Finsupp.single_eq_of_ne hrp, add_zero]
+    simp [hr_eq]
+  rw [hp_beq, h_prod]
+  simp
+
+/--
+Every `a : SemanticAddress` descends cleanly along minimal prime factors to `1`,
+so `kinematicSieve a = 1` unconditionally.
+-/
+theorem kinematicSieve_eq_one (a : SemanticAddress) : kinematicSieve a = 1 := by
+  induction a using wellFounded_divisibility.induction with
+  | h a ih =>
+    unfold kinematicSieve
+    by_cases h1 : a.val = 1
+    · have hbeq : (a.val == 1) = true := beq_iff_eq.mpr h1
+      rw [dif_pos hbeq]
+    · have hbeq : (a.val == 1) = false := beq_false_of_ne h1
+      have hnot : ¬ ((a.val == 1) = true) := by simp [hbeq]
+      rw [dif_neg hnot]
+      dsimp only
+      rw [tensorGate_maximalProperDivisor_eq_one a h1]
+      simp only [beq_iff_eq, one_ne_zero, ↓reduceIte]
+      apply ih
+      dsimp [DivisibilityLT, maximalProperDivisor]
+      refine ⟨Nat.div_dvd_of_dvd (Nat.minFac_dvd a.val), ?_⟩
+      intro contra
+      cases Nat.div_eq_self.mp contra with
+      | inl h0 => exact ne_of_gt a.property h0
+      | inr hm => exact h1 (Nat.minFac_eq_one_iff.mp hm)
+
 end KinematicRiemann

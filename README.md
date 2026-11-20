@@ -1,81 +1,58 @@
 # tensor-sieve
 
-**tensor-sieve** is a Lean 4 formalization project mapping the emergence of quantum chaos directly from discrete arithmetic topologies.
+`tensor-sieve` is a Lean 4 formalization library and Python diagnostic suite for finite-dimensional Krein-space ($J$-self-adjoint) operators, prime-step graph trace identities, and discrete spectral statistics. It serves as the formal algebraic counterpart to the browser workbench [krein](https://github.com/ryanncode/krein).
 
-It provides the **Formal Theoretical Warrant** for the non-Archimedean kinematics that drive the Gaussian Unitary Ensemble (GUE) eigenvalue spectrum without relying on continuous Hilbert spaces or physics-based heuristics.
+## Project Layout
 
-## The Architecture of Verification
+- **`TensorSieve/` and `PTSymmetry/` (Verified Lean 4 Core):** Compiles under Lean `v4.32.0` with zero `sorry` placeholders and zero custom axioms; every core theorem depends only on Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`).
+- **`TensorSieve/Speculative/` (Archived Exploratory Sketches):** Unproven research stubs (`CondensedMath.lean`, `TopologicalPeriodicCyclicHomology.lean`, `AdelicBridge.lean`, `TatesThesis.lean`) kept out of the main build (`TensorSieve.lean` does not import them).
+- **`scripts/` (Numerical Diagnostics):** Standalone Python tools for spectral spacing tests against random-matrix null models (`adelic_operator_probe.py`) and independent Weil explicit-formula benchmarks (`verify_riemann_zeros.py`).
 
-To achieve strict verification and massive computational scale simultaneously, this project operates in tandem with a computational execution engine:
+## Verified Lean 4 Modules
 
-1. **`tensor-sieve` (This Repository):** The Lean 4 formalization. It establishes the strictly computable, type-theoretically sound operator equations.
-2. **`krein` ([Web Engine](https://github.com/ryanncode/krein)):** The Rust/WASM execution environment. This evaluates the formal logic over massive structural bounds (e.g., Primorials up to $10^{11}$) directly in the browser to extract the continuous eigenvalue spacing.
+| Module | Proved Results |
+|---|---|
+| [TensorSieve/Operator.lean](TensorSieve/Operator.lean) | Symmetry of the $p$-adic $L^1$ distance `valuationDivergence`; conjugate symmetry of `crossBranchAmplitude`; Hermiticity of the slice coherence matrix (`sliceMatrix_isHermitian`, $H^* = H$); `sliceJ_sq` ($J^2 = I$); `sliceKreinOperator_isJAdjoint` ($JC = C^*J$); and `krein_eigenvalue_real_of_non_isotropic` (every eigenvector with nonzero Krein inner product $[v, v]_J \ne 0$ has a real eigenvalue). |
+| [TensorSieve/KreinBridge.lean](TensorSieve/KreinBridge.lean) | Connects the abstract `PTSymmetry` Krein-space classes (`IndefiniteMetric`, `KreinSpace`, `HasJOperator`, `MajorantPositiveDefinite`, `IsJAdjoint`) to concrete finite-dimensional slice spaces `SliceVec slice := Fin slice.length → ℝ`, proving exact agreement with the real part of `sliceKreinOperator`. |
+| [TensorSieve/DiscreteTrace.lean](TensorSieve/DiscreteTrace.lean) | Proves an abstract finite-graph trace decomposition and discharges all hypotheses unconditionally for prime-step graphs in `concrete_prime_step_selberg_trace`: $\mathrm{Tr}(L_c^2) = \mathrm{Tr}(D^2) + \sum_{p \in P} \sum_{x \in S} \deg_p(x, S)$. Also defines general walk-length matrix powers `matrixPow` and traces `discreteTracePow`. |
+| [TensorSieve/Kinematics.lean](TensorSieve/Kinematics.lean) | Well-founded divisibility ordering on positive integers and `kinematicSieve_eq_one` (minimal-prime descent terminates cleanly at `1` for every positive integer). |
+| [TensorSieve/LambdaRing.lean](TensorSieve/LambdaRing.lean) & [F1Descent.lean](TensorSieve/F1Descent.lean) | Instantiates Borger's Frobenius-lift $\Lambda$-ring structure on $\mathbb{Z}$ via Fermat's Little Theorem (`ZMod.pow_card`) and proves Adams ring-homomorphism properties. |
+| [TensorSieve/PunctureMask.lean](TensorSieve/PunctureMask.lean) & [Theorem.lean](TensorSieve/Theorem.lean) | Coprimality indicator gates, Möbius inversion expansion, integer trace bounds (`traceHamiltonian_is_int`), and slice invariance (`global_spectral_invariance`). |
+| [PTSymmetry/](PTSymmetry/) | Standalone indefinite-metric Krein-space package covering Minkowski signature validation (`Minkowski.lean`), fundamental symmetry $J$, the induced positive-definite Majorant Hilbert space (`MajorantTopology.lean`), cone projections (`P_plus_add_P_minus`), Gupta–Bleuler physical subspaces, and $J$-self-adjoint Hamiltonians. |
 
-## Key Theoretical Components
+## Building and Running Tests
 
-### 1. Non-Archimedean Kinematics
-Standard $p$-adic dynamics frequently depend on artificial continuity (like Berkovich spaces) and temporal iteration. `tensor-sieve` implements pure constructivist kinematics. We strictly enforce the principle that topological distance is measured exclusively through discrete multiples (divisibility). The operations themselves construct the geometric space.
+Always fetch the prebuilt Mathlib binary cache before compiling:
 
-### 2. The Krein Space Metric
-By fracturing the positive-definite Hilbert space and utilizing an indefinite Krein space, the framework maps asymmetric parity phases natively. The chaotic distribution of the primes is no longer treated as a fluid approximation; it is explicitly tracked as true structural randomness generated by unique factorization jamming against itself.
+```bash
+lake exe cache get
+lake build TensorSieve PTSymmetry
+lake env lean --run tests/Tests.lean
+```
 
-### 3. The Continuous Spectrum Unfolding
-The shift operator calculates localized arithmetic divergence across the lattice using combinatorial Laplacians ($L_c = D - K$). Discrete delta constraints enforce prime transition rules, generating continuous eigenvalue spectra that mirror topological tension.
+`tests/Tests.lean` runs all `#guard` checks and prints the exact axiom list (`#print axioms`) for the core theorems.
 
-### 4. The Discrete Selberg-Weil Trace Identity
-In [`TensorSieve/DiscreteTrace.lean`](file:///home/gemini/Data/Code/tensor-sieve/TensorSieve/DiscreteTrace.lean), length-2 closed walks on the Bruhat-Tits quiver decouple the squared Laplacian into diagonal degree components and prime weights:
-$$\mathrm{Tr}(L_c^2) = \mathrm{Tr}(D^2) + \sum_{p \in P} \Phi(p, S)$$
-where $\Phi(p, S) = \sum_{x \in S} v_p(x)$ measures slice prime valuation density. The theorem connects operator traces to arithmetic prime sums using standard Lean 4 foundations without custom axioms.
+## Numerical Diagnostics
 
-## Visualizing the Energy Landscape
+### 1. Operator Spacing & Null-Model Probe (`scripts/adelic_operator_probe.py`)
 
-While Lean 4 guarantees the logic, transversal evaluation requires navigating large integer boundaries (e.g., $N = 27,720,000$). The output stream of these tensor evaluations maps discrete bottlenecks into an unfolded continuous spectrum. 
+Runs with zero external Python dependencies (pure standard library, with an automatic NumPy fast path if installed). It computes the unfolding-free adjacent spacing ratio $\langle r \rangle = \langle \min(s_n, s_{n+1}) / \max(s_n, s_{n+1}) \rangle$ (benchmarks: Poisson `0.3863`, GOE `0.5307`, GUE `0.5996`) and compares discrete arithmetic operators against random-matrix null models of the same dimension:
 
-![GUE Energy Landscape](assets/spectrum_visualization.png)
+```bash
+python3 scripts/adelic_operator_probe.py --max-dim 24 --trials 6
+```
 
-### Understanding the Data
+Three concrete structural observations emerge on finite slices ($d \le 24$):
+1. **Constant parity on single horizontal slices:** Every integer in a single downward slice shares the same $\Omega(x)$, so $J = \pm I$ and $C = \pm H$ is Hermitian with purely real eigenvalues. On the largest slice of `510510` ($d = 24$), the antisymmetric imaginary coupling yields $\langle r \rangle = 0.5946$ (matching the $d = 24$ GUE null control of `0.5962`), whereas the power-heavy slice of `27720` ($d = 22$) sits near GOE at `0.5125`.
+2. **Integrability of separable prime-step graphs:** A sparse prime-step divisor graph weighted by von Mangoldt amplitudes $w(p) = \ln p / \sqrt{p}$ factors as a Cartesian product of one-dimensional chains across primes. Even with a time-reversal-breaking Peierls magnetic phase, its spectrum obeys Berry–Tabor Poisson statistics ($\langle r \rangle \in [0.25, 0.41]$). Generating GUE level repulsion requires coupling distinct primes non-separably (for example, through additive order $a > b$).
+3. **Broken-PT complex pairs on mixed-level slices:** Combining two adjacent levels creates a genuinely indefinite signature (such as $(12+, 12-)$). The operator $C = JH$ maintains exact $J$-self-adjointness ($\|JC - C^*J\|_\infty = 0$) while splitting 20–22 of its 24 eigenvalues into complex conjugate pairs supported on isotropic eigenvectors, matching `krein_eigenvalue_real_of_non_isotropic`.
 
-**Plot 1: Transition Amplitudes (Krein Space Decomposition)**
-This plot tracks transition amplitudes. Green stems represent evaluations residing in the positive-definite $V^+$ subspace, while orange stems represent evaluations dropping into the $V^-$ subspace, absorbing negative parity.
+### 2. Weil Explicit-Formula Benchmark (`scripts/verify_riemann_zeros.py`)
 
-**Plot 2: Cumulative Spectral Density (Unfolded Spectrum)**
-This step function graphs the cumulative sum of energy level spacings. It provides a formal Density of States, showing that finite lattice boundaries construct a coherent bottleneck without mathematical divergence.
+Evaluates the classical Gaussian-damped Weil explicit-formula cosine sum over prime powers $u = \ln(p^k)$ weighted by $(\ln p / p^{k/2}) e^{-\frac{1}{2}(\sigma u)^2}$. This script is independent of the slice matrices above and provides a fast numerical check against LMFDB values for $\gamma_1 \dots \gamma_{10}$ (mean relative error below `0.25%` at prime cutoff `1000`):
 
-**Plot 3: Level Repulsion Histogram**
-Normalized spacings form a probability density histogram. Overlaid is the theoretical Wigner surmise curve ($P(s) = \frac{32}{\pi^2} s^2 e^{-\frac{4}{\pi} s^2}$), demonstrating that deterministic grammatical constraints replicate quantum chaotic level repulsion.
-
-**Plot 4: Spectral Form Factor (SFF)**
-This log-log plot evaluates the discrete Fourier transform of the pair correlation function. It marks theoretical transition phases (Correlation Hole, Heisenberg Time, Topological Plateau) that characterize chaotic quantum dynamics.
-
-## Physical Riemann Zero Resonance Spectrum
-
-The discrete sieve extracts certified critical line zeros ($\gamma_1 = 14.134725\dots, \gamma_2 = 21.022040\dots$) through coherent phase resonance over the prime-valuation lattice. By projecting harmonic frequencies across prime power coordinates $u = \ln(p^k)$ weighted by normalized Weil coefficients $\Lambda(n)/\sqrt{n}$, the discrete sieve produces sharp spectral peaks at the imaginary ordinates of non-trivial zeros.
-
-![Riemann Zero Resonance Spectrum](assets/zeros_resonance.png)
-
-### Numerical Verification Benchmark
-
-The standalone script [`scripts/verify_riemann_zeros.py`](file:///home/gemini/Data/Code/tensor-sieve/scripts/verify_riemann_zeros.py) sweeps frequencies across composite seeds up to arbitrary magnitudes (such as primorial seeds 1000# $\sim 10^{415.3}$ and 3000# $\sim 10^{1273.5}$) in under 0.5 seconds:
-
-| Index ($n$) | LMFDB Certified Zero ($\gamma_n$) | Sieve Resonance Peak ($t$) | Absolute Error | Relative Error |
-|---|---|---|---|---|
-| 1 | 14.134725 | 14.225121 | 0.090396 | 0.640% |
-| 2 | 21.022040 | 20.959689 | 0.062351 | 0.297% |
-| 3 | 25.010858 | 25.042769 | 0.031912 | 0.128% |
-| 4 | 30.424876 | 30.488272 | 0.063396 | 0.208% |
-| 5 | 32.935062 | 32.902590 | 0.032472 | 0.099% |
-| 6 | 37.586178 | 37.679207 | 0.093029 | 0.248% |
-| 7 | 40.918719 | 40.858291 | 0.060428 | 0.148% |
-| 8 | 43.327073 | 43.314779 | 0.012295 | 0.028% |
-| 9 | 48.005151 | 47.979756 | 0.025394 | 0.053% |
-| 10 | 49.773832 | 49.818555 | 0.044723 | 0.090% |
-
-To reproduce the benchmark and generate the resonance plot locally:
 ```bash
 python3 scripts/verify_riemann_zeros.py --primorial 1000 --num-zeros 10
 ```
 
----
-
-> **Verification Status**
-> The Lean 4 formalization proves spectral invariance and the discrete Selberg-Weil trace theorem ([`Theorem.lean`](file:///home/gemini/Data/Code/tensor-sieve/TensorSieve/Theorem.lean) and [`DiscreteTrace.lean`](file:///home/gemini/Data/Code/tensor-sieve/TensorSieve/DiscreteTrace.lean)) relying solely on standard Lean foundational axioms (`propext`, `Classical.choice`, `Quot.sound`). Numerical zero extraction executes through the standalone Python CLI and in-browser WebAssembly.
+![Riemann Zero Resonance Spectrum](assets/zeros_resonance.png)

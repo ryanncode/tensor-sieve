@@ -241,4 +241,188 @@ theorem discrete_selberg_weil_explicit_formula
   rw [discrete_selberg_trace_identity d K S omega hK hWalk]
   rw [sum_omega_eq_sum_prime_densities omega P v S hDecomp]
 
+/-!
+## Concrete Prime-Step Graph Instantiation & General Walk-Length Powers
+
+We discharge `SatisfiesTwoWalkIdentity` and `DecomposesIntoPrimes` unconditionally
+on any finite vertex slice `S : List ℕ` equipped with the concrete undirected
+prime-step adjacency relation `primeStepAdj`, and define general walk-length `k`
+matrix powers `matrixPow` and traces `discreteTracePow`.
+-/
+
+/-- Concrete undirected prime-step edge indicator for a fixed prime `p`. -/
+def primeEdgeInd (p x y : ℕ) : ℕ :=
+  if (x > 0 ∧ y = x * p) ∨ (y > 0 ∧ x = y * p) then 1 else 0
+
+/-- Concrete prime-step adjacency summed across a prime generator basis `P`. -/
+def primeBasisAdj (P : List ℕ) (x y : ℕ) : ℤ :=
+  P.foldl (fun acc p => acc + (primeEdgeInd p x y : ℤ)) 0
+
+/-- Number of `p`-step neighbors of `x` inside slice `S`. -/
+def primeEdgeDeg (S : List ℕ) (x p : ℕ) : ℕ :=
+  S.foldl (fun acc y => acc + primeEdgeInd p x y) 0
+
+/-- Total prime-step degree of `x` inside slice `S` across prime basis `P`. -/
+def sliceGraphDegree (P S : List ℕ) (x : ℕ) : ℤ :=
+  S.foldl (fun acc y => acc + primeBasisAdj P x y) 0
+
+lemma primeEdgeInd_self_zero (p x : ℕ) (hp : p > 1) : primeEdgeInd p x x = 0 := by
+  unfold primeEdgeInd
+  split_ifs with h
+  · exfalso
+    rcases h with ⟨hx, hmul⟩ | ⟨hx, hmul⟩
+    · have : x * 1 < x * p := Nat.mul_lt_mul_of_pos_left hp hx
+      omega
+    · have : x * 1 < x * p := Nat.mul_lt_mul_of_pos_left hp hx
+      omega
+  · rfl
+
+lemma primeEdgeInd_symm (p x y : ℕ) : primeEdgeInd p x y = primeEdgeInd p y x := by
+  unfold primeEdgeInd
+  by_cases h : (x > 0 ∧ y = x * p) ∨ (y > 0 ∧ x = y * p)
+  · have h' : (y > 0 ∧ x = y * p) ∨ (x > 0 ∧ y = x * p) := h.symm
+    simp [h, h']
+  · have h' : ¬ ((y > 0 ∧ x = y * p) ∨ (x > 0 ∧ y = x * p)) := fun hc => h hc.symm
+    simp [h, h']
+
+lemma primeEdgeInd_unique_prime (p q x y : ℕ) (hpq : p ≠ q)
+    (h1 : primeEdgeInd p x y = 1) : primeEdgeInd q x y = 0 := by
+  unfold primeEdgeInd at h1 ⊢
+  split_ifs at h1 with hp
+  split_ifs with hq
+  · exfalso
+    rcases hp with ⟨hx, hpy⟩ | ⟨hy, hpx⟩ <;> rcases hq with ⟨hx', hqy⟩ | ⟨hy', hqx⟩
+    · have : x * p = x * q := hpy.symm.trans hqy
+      exact hpq (Nat.eq_of_mul_eq_mul_left hx this)
+    · have hmul : y * q * p = y := by rw [← hqx, ← hpy]
+      have hqp1 : q * p = 1 := by
+        have : y * (q * p) = y * 1 := by rw [← Nat.mul_assoc, hmul, Nat.mul_one]
+        exact Nat.eq_of_mul_eq_mul_left hy' this
+      have hq1 : q = 1 := Nat.eq_one_of_mul_eq_one_right hqp1
+      have hp1 : p = 1 := Nat.eq_one_of_mul_eq_one_left hqp1
+      exact hpq (hp1.trans hq1.symm)
+    · have hmul : x * q * p = x := by rw [← hqy, ← hpx]
+      have hqp1 : q * p = 1 := by
+        have : x * (q * p) = x * 1 := by rw [← Nat.mul_assoc, hmul, Nat.mul_one]
+        exact Nat.eq_of_mul_eq_mul_left hx' this
+      have hq1 : q = 1 := Nat.eq_one_of_mul_eq_one_right hqp1
+      have hp1 : p = 1 := Nat.eq_one_of_mul_eq_one_left hqp1
+      exact hpq (hp1.trans hq1.symm)
+    · have : y * p = y * q := hpx.symm.trans hqx
+      exact hpq (Nat.eq_of_mul_eq_mul_left hy this)
+  · rfl
+
+lemma foldl_zero_of_all_zero (L : List ℕ) (f : ℕ → ℤ) (hf : ∀ p ∈ L, f p = 0) :
+    L.foldl (fun acc p => acc + f p) 0 = 0 := by
+  rw [foldl_eq_of_eq_on L f (fun _ => 0) 0 hf]
+  exact foldl_zero_list L
+
+/-- Every prime-step adjacency matrix with `∀ p ∈ P, p > 1` has zero diagonal. -/
+theorem primeBasisAdj_diag_zero (P : List ℕ) (hP : ∀ p ∈ P, p > 1) (x : ℕ) :
+    primeBasisAdj P x x = 0 := by
+  unfold primeBasisAdj
+  apply foldl_zero_of_all_zero P (fun p => (primeEdgeInd p x x : ℤ))
+  intro p hp
+  rw [primeEdgeInd_self_zero p x (hP p hp)]
+  rfl
+
+theorem primeBasisAdj_symm (P : List ℕ) (x y : ℕ) :
+    primeBasisAdj P x y = primeBasisAdj P y x := by
+  unfold primeBasisAdj
+  apply foldl_eq_of_eq_on P _ _ 0
+  intro p _
+  rw [primeEdgeInd_symm p x y]
+
+/-- On a `Nodup` list `P`, at most one prime joins `x` and `y`: `primeBasisAdj P x y ∈ {0, 1}`. -/
+theorem primeBasisAdj_zero_or_one (P : List ℕ) (hNodup : P.Nodup) (x y : ℕ) :
+    primeBasisAdj P x y = 0 ∨ primeBasisAdj P x y = 1 := by
+  induction P with
+  | nil => left; rfl
+  | cons p ps ih =>
+    rw [List.nodup_cons] at hNodup
+    obtain ⟨hp_not_mem, hps_nodup⟩ := hNodup
+    unfold primeBasisAdj
+    rw [foldl_cons_val]
+    by_cases h1 : primeEdgeInd p x y = 1
+    · right
+      have hrest : ps.foldl (fun acc q => acc + (primeEdgeInd q x y : ℤ)) 0 = 0 := by
+        apply foldl_zero_of_all_zero ps
+        intro q hq
+        have hpq : p ≠ q := fun heq => hp_not_mem (heq ▸ hq)
+        rw [primeEdgeInd_unique_prime p q x y hpq h1]
+        rfl
+      rw [h1, hrest]
+      ring
+    · have h0 : primeEdgeInd p x y = 0 := by
+        unfold primeEdgeInd at h1 ⊢
+        split_ifs at h1 ⊢ <;> omega
+      rw [h0]
+      simp only [Nat.cast_zero, zero_add]
+      exact ih hps_nodup
+
+/-- Unconditional 2-walk identity for `primeBasisAdj` on any `Nodup` prime list `P`. -/
+theorem primeBasisAdj_satisfies_two_walk (P : List ℕ) (hNodup : P.Nodup) (S : List ℕ) :
+    SatisfiesTwoWalkIdentity (primeBasisAdj P) S (sliceGraphDegree P S) := by
+  intro x _
+  unfold matrixSqDiag sliceGraphDegree
+  apply foldl_eq_of_eq_on S _ _ 0
+  intro y _
+  rw [primeBasisAdj_symm P y x]
+  rcases primeBasisAdj_zero_or_one P hNodup x y with h | h <;> rw [h] <;> ring
+
+private lemma foldl_nat_cast_eq (S : List ℕ) (f : ℕ → ℕ) (init : ℕ) :
+    ((S.foldl (fun acc y => acc + f y) init : ℕ) : ℤ) =
+      S.foldl (fun acc y => acc + (f y : ℤ)) (init : ℤ) := by
+  induction S generalizing init with
+  | nil => rfl
+  | cons y ys ih =>
+    simp only [List.foldl_cons]
+    rw [ih (init + f y), Nat.cast_add]
+
+/-- Unconditional decomposition of `sliceGraphDegree` into per-prime edge degrees. -/
+theorem primeBasisAdj_decomposes_into_primes (P S : List ℕ) :
+    DecomposesIntoPrimes (sliceGraphDegree P S) P (primeEdgeDeg S) S := by
+  intro x _
+  unfold sliceGraphDegree primeBasisAdj primeEdgeDeg
+  have hcast : ∀ p, ((S.foldl (fun acc y => acc + primeEdgeInd p x y) 0 : ℕ) : ℤ) =
+      S.foldl (fun acc y => acc + (primeEdgeInd p x y : ℤ)) 0 :=
+    fun p => foldl_nat_cast_eq S (fun y => primeEdgeInd p x y) 0
+  rw [foldl_eq_of_eq_on P _
+    (fun p => S.foldl (fun acc y => acc + (primeEdgeInd p x y : ℤ)) 0) 0 (fun p _ => hcast p)]
+  exact foldl_foldl_comm S P (fun y p => (primeEdgeInd p x y : ℤ))
+
+/--
+Unconditional Concrete Discrete Trace Theorem on Prime-Step Graphs:
+For any finite vertex slice `S` and any duplicate-free list of primes `P` (`∀ p ∈ P, p > 1`),
+the squared combinatorial Laplacian `L_c = D - K` satisfies without any extra hypotheses:
+  `Tr(L_c²) = Tr(D²) + ∑_{p ∈ P} ∑_{x ∈ S} deg_p(x, S)`.
+-/
+theorem concrete_prime_step_selberg_trace (d : ℕ → ℤ) (P S : List ℕ)
+    (hNodup : P.Nodup) (hP : ∀ p ∈ P, p > 1) :
+    discreteTraceSq (laplacianOp d (primeBasisAdj P)) S =
+      discreteTraceSq (degreeOp d) S +
+        P.foldl (fun acc p => acc + slicePrimeDensity (primeEdgeDeg S) p S) 0 := by
+  apply discrete_selberg_weil_explicit_formula d (primeBasisAdj P) S
+    (sliceGraphDegree P S) P (primeEdgeDeg S)
+  · intro x _ y _ hxy
+    have heq : x = y := beq_iff_eq.mp hxy
+    subst heq
+    exact primeBasisAdj_diag_zero P hP x
+  · exact primeBasisAdj_satisfies_two_walk P hNodup S
+  · exact primeBasisAdj_decomposes_into_primes P S
+
+/-- General walk-length `k` matrix power entry `(A^k)_{x, y}` over finite slice `S`. -/
+def matrixPow (A : ℕ → ℕ → ℤ) (S : List ℕ) : ℕ → ℕ → ℕ → ℤ
+  | 0, x, y => if x == y then 1 else 0
+  | 1, x, y => A x y
+  | k + 2, x, y => S.foldl (fun acc z => acc + A x z * matrixPow A S (k + 1) z y) 0
+
+/-- General walk-length `k` discrete trace `Tr(A^k)` across slice `S`. -/
+def discreteTracePow (A : ℕ → ℕ → ℤ) (S : List ℕ) (k : ℕ) : ℤ :=
+  S.foldl (fun acc x => acc + matrixPow A S k x x) 0
+
+/-- Consistency check: `discreteTracePow A S 2` equals `discreteTraceSq A S`. -/
+theorem discreteTracePow_two_eq_sq (A : ℕ → ℕ → ℤ) (S : List ℕ) :
+    discreteTracePow A S 2 = discreteTraceSq A S := rfl
+
 end KinematicRiemann

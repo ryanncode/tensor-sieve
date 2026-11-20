@@ -1,6 +1,7 @@
 import TensorSieve.KreinSpace
 import TensorSieve.Kinematics
 import TensorSieve.Operator
+import TensorSieve.KreinBridge
 import TensorSieve.Distribution
 import TensorSieve.AxCal
 import TensorSieve.FTNILO
@@ -9,13 +10,11 @@ import TensorSieve.Theorem
 import TensorSieve.PunctureMask
 import TensorSieve.DiscreteTrace
 import TensorSieve.GaloisRepresentation
-import TensorSieve.TatesThesis
 import Mathlib.Data.Complex.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.LinearAlgebra.BilinearForm.Basic
 import TensorSieve.F1Descent
 import TensorSieve.LawlessGeneric
-import TensorSieve.MaassFormEmergence
 
 /-!
 # Formal Verification Test Suite for Tensor Sieve
@@ -207,13 +206,9 @@ lemma laplacian_row_sum_eq_zero (a : SemanticAddress) (S : Finset SemanticAddres
     _ = 0 := by
       rw [h_deg, sub_self]
 
-/--
-BOUNDARY WARNING:
-`kinematicSieve` evaluates noncomputable asymptotic scaling across the infinite integer domain.
-This scaling proof belongs natively to universal limits and is documented via `sorry`
-for bounded metrics.
--/
-theorem kinematicSieve_120 : kinematicSieve ⟨120, by decide⟩ = 0 := by sorry
+/-- Every semantic address descends cleanly to `1` along minimal prime factors. -/
+theorem kinematicSieve_120 : kinematicSieve ⟨120, by decide⟩ = 1 :=
+  kinematicSieve_eq_one ⟨120, by decide⟩
 
 /-!
 ## 3. Operator.lean Tests
@@ -350,10 +345,21 @@ Validates the existence and correct typing of the fundamental theorems that form
 the theoretical constraints on the Krein metric and F1 geometry.
 -/
 
-#check positivity_bias_contradiction
-#check f1_suppresses_addition
-#check logical_exhaustion_generates_structure
-#check maass_form_emergent_symmetry
+#check indefinite_not_posSemidef_of_neg_vec
+#check adams_multiplicative
+#check adams_additive
+#check isMaximallySaturated_of_bound_le_card
+#check sliceMatrix_isHermitian
+#check sliceKreinOperator_isJAdjoint
+#check krein_eigenvalue_real_of_non_isotropic
+#check sliceKreinSpace
+#check sliceHasJOperator
+#check sliceMajorantPositiveDefinite
+#check sliceRealKreinLinearMap_isJAdjoint
+#check sliceRealKreinOp_eq_re_sliceKreinOperator
+#check kinematicSieve_eq_one
+#check concrete_prime_step_selberg_trace
+#check discreteTracePow_two_eq_sq
 
 /-!
 ## 11. Multiplicative Punctures and Global Spectral Invariance Tests
@@ -390,6 +396,13 @@ combinatorial Laplacian traces to Bruhat-Tits prime valuation densities.
 #check discrete_selberg_weil_explicit_formula
 
 #print axioms discrete_selberg_weil_explicit_formula
+#print axioms concrete_prime_step_selberg_trace
+#print axioms sliceMatrix_isHermitian
+#print axioms sliceKreinOperator_isJAdjoint
+#print axioms krein_eigenvalue_real_of_non_isotropic
+#print axioms sliceRealKreinLinearMap_isJAdjoint
+#print axioms sliceRealKreinOp_eq_re_sliceKreinOperator
+#print axioms kinematicSieve_eq_one
 #print axioms global_spectral_invariance
 
 end KinematicRiemann.TestSuite

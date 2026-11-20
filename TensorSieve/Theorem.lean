@@ -1,6 +1,5 @@
 import TensorSieve.Kinematics
 import TensorSieve.Operator
-import TensorSieve.AdelicBridge
 import TensorSieve.LambdaRing
 import TensorSieve.FTNILO
 import TensorSieve.AxCal
