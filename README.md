@@ -10,9 +10,11 @@ The Lean 4 modules in `TensorSieve/` and `PTSymmetry/` verify the algebraic symm
 
 Pick a composite starting integer, such as `30 = 2 × 3 × 5`, and divide it by each of its distinct prime factors to get a layer ("slice") of divisors (`15, 10, 6`). Repeating that step yields successive horizontal slices in which every integer $x$ has the same total prime-factor count with multiplicity, $\Omega(x) = \sum_p v_p(x)$.
 
-On any slice, `TensorSieve/Operator.lean` builds a complex Hermitian matrix $H$ over all pairs $(a, b)$ in the slice. The real part of $H_{ab}$ depends on the number of prime factors shared by $\gcd(a, b)$ minus the $p$-adic $L^1$ distance $d(a, b) = \sum_p |v_p(a) - v_p(b)|$, and entries drop to zero whenever $d(a, b) > \Omega(\gcd(a, b))$. Off-diagonal entries also carry an imaginary term $\pm i\,d(a, b)$ whose sign is fixed by whether $a > b$. That imaginary phase keeps $H$ Hermitian ($H^* = H$) while breaking time-reversal symmetry, which is necessary to leave the real-symmetric GOE class and reach GUE-like level spacing.
+On any slice, `TensorSieve/Operator.lean` builds a complex Hermitian matrix $H$ over all pairs $(a, b)$ in the slice. The real part of $H_{ab}$ depends on the number of prime factors shared by $\gcd(a, b)$ minus the $p$-adic L1 distance $d(a, b) = \sum_p |v_p(a) - v_p(b)|$, and entries drop to zero whenever $d(a, b) > \Omega(\gcd(a, b))$. Off-diagonal entries also carry an imaginary term $\pm i d(a, b)$ whose sign is fixed by whether $a > b$. That imaginary phase keeps $H$ Hermitian ($H^* = H$) while breaking time-reversal symmetry, which is necessary to leave the real-symmetric GOE class and reach GUE-like level spacing.
 
-Each integer also gets a parity sign $(-1)^{\Omega(x)}$, collected into a diagonal involution $J = \mathrm{diag}((-1)^{\Omega(x)})$. Multiplying gives the operator $C = J H$, which satisfies the Krein symmetry identity $J C = C^* J$.
+Each integer also gets a parity sign (`+1` when $\Omega(x)$ is even and `-1` when it is odd), collected into a diagonal involution $J$ to form the Krein operator $C$:
+
+$$J = \mathrm{diag}((-1)^{\Omega(x)}), \qquad C = J H, \qquad J C = C^* J.$$
 
 To measure level repulsion numerically without fragile unfolding fits, the Python probes compute the adjacent spacing ratio $\langle r \rangle = \langle \min(s_n, s_{n+1}) / \max(s_n, s_{n+1}) \rangle$ from sorted eigenvalue gaps $s_n = E_{n+1} - E_n$. Uncorrelated spectra (Poisson) average `0.3863`, time-reversal-symmetric chaotic spectra (GOE) average `0.5307`, and complex Hermitian chaotic spectra (GUE) average `0.5996`.
 
@@ -60,7 +62,7 @@ The verified Lean 4 core lives in `TensorSieve/` and `PTSymmetry/` (compiled und
 | Module | Proved Results |
 |---|---|
 | [TensorSieve/Operator.lean](TensorSieve/Operator.lean) | Symmetry of the $p$-adic distance `valuationDivergence`, Hermiticity of the slice matrix $H$, $J^2 = I$, $J$-self-adjointness of $C = JH$, and the Krein reality theorem for non-isotropic eigenvectors ($[v, v]_J \ne 0$). |
-| [TensorSieve/Theorem.lean](TensorSieve/Theorem.lean) | Closed-form diagonal entries $(-1)^{\Omega(a)}\Omega(a)$, exact factor drop $\Omega(n/p) = \Omega(n) - 1$ for primes $p \mid n$, exact trace formula $\mathrm{Tr}(H) = (-1)^k k\,|\text{slice}|$ on constant-weight slices, scalar $J = (-1)^k I$ and Hermiticity of $C$ on single slices, and symmetry of the $p$-adic tree metric on positive integers. |
+| [TensorSieve/Theorem.lean](TensorSieve/Theorem.lean) | Closed-form diagonal entries $(-1)^{\Omega(a)}\Omega(a)$, exact factor drop $\Omega(n/p) = \Omega(n) - 1$ for primes $p \mid n$, exact trace formula $\mathrm{Tr}(H) = (-1)^k k \lvert\text{slice}\rvert$ on constant-weight slices, scalar $J = (-1)^k I$ and Hermiticity of $C$ on single slices, and symmetry of the $p$-adic tree metric on positive integers. |
 | [TensorSieve/KreinBridge.lean](TensorSieve/KreinBridge.lean) | Instantiates the abstract `PTSymmetry` Krein-space typeclasses directly on finite slice vector spaces `Fin slice.length → ℝ`, matching the real part of `sliceKreinOperator`. |
 | [TensorSieve/DiscreteTrace.lean](TensorSieve/DiscreteTrace.lean) | Unconditional finite prime-step graph trace formula (`concrete_prime_step_selberg_trace`), $\mathrm{Tr}(L_c^2) = \mathrm{Tr}(D^2) + \sum_{p \in P}\sum_{x \in S} \deg_p(x, S)$, along with general matrix-power traces. |
 | [TensorSieve/Kinematics.lean](TensorSieve/Kinematics.lean) | Well-founded divisibility ordering and proof that repeated division by minimal prime factors terminates at `1` for every positive integer. |
